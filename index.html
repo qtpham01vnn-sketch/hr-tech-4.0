@@ -60,7 +60,7 @@
                 <h1 class="text-2xl font-black tracking-tighter text-[#4edea3]" data-i18n="appName">HR-Tech 4.0</h1>
                 <p class="text-[9px] uppercase tracking-[0.2em] text-[#4edea3]/40 font-bold mt-1" data-i18n="enterprise">Enterprise Recruitment OS</p>
             </div>
-            <button onclick="toggleSidebar()" class="lg:hidden material-symbols-outlined text-emerald-500">close</button>
+            <button id="closeSidebarMobile" class="lg:hidden material-symbols-outlined text-emerald-500">close</button>
         </div>
 
         <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
@@ -108,7 +108,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 lg:gap-8">
                 <div class="w-full flex-1 flex items-center gap-4 lg:gap-6">
                     <!-- Mobile Menu Toggle -->
-                    <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-[#141a17] border border-[#242c27] rounded-xl text-emerald-500">
+                    <button id="toggleSidebarMobile" class="lg:hidden w-10 h-10 flex items-center justify-center bg-[#141a17] border border-[#242c27] rounded-xl text-emerald-500">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
 
@@ -135,7 +135,7 @@
                             <span class="material-symbols-outlined text-sm">menu</span>
                         </button>
                         <!-- AI Mobile Toggle -->
-                        <button id="openChatMobile" onclick="toggleChat()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500">
+                        <button id="openChatMobile" class="lg:hidden w-10 h-10 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500">
                             <span class="material-symbols-outlined text-sm">auto_awesome</span>
                         </button>
                     </div>

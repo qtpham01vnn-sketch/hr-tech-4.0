@@ -1,4 +1,4 @@
-// 📦 App State (Must be first)
+// 📦 App State
 const state = {
     currentLang: localStorage.getItem('talentOS_lang') || 'en',
     isChatOpen: window.innerWidth > 1024,
@@ -8,7 +8,10 @@ const state = {
 // 🌎 Localization Engine
 function updateLanguage() {
     const lang = state.currentLang;
-    if (typeof translations === 'undefined') return;
+    if (typeof translations === 'undefined') {
+        console.error("Translations not found!");
+        return;
+    }
     const dictionary = translations[lang];
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -28,7 +31,7 @@ function updateLanguage() {
     document.documentElement.lang = lang;
 }
 
-// 🚀 Global Functions
+// 🚀 Core Functions
 window.toggleSidebar = function() {
     state.isSidebarOpen = !state.isSidebarOpen;
     document.body.classList.toggle('sidebar-open', state.isSidebarOpen);
@@ -38,7 +41,7 @@ window.toggleChat = function() {
     state.isChatOpen = !state.isChatOpen;
     document.body.classList.toggle('chat-open', state.isChatOpen);
     
-    // Desktop padding logic
+    // Desktop layout adjustment
     if (window.innerWidth > 1024) {
         const main = document.querySelector('main');
         const openBtn = document.getElementById('openChat');
@@ -71,7 +74,7 @@ window.filterCandidates = function(layer) {
     showToast(state.currentLang === 'en' ? `Filtered: ${layer.toUpperCase()}` : `Đã lọc: ${layer.toUpperCase()}`);
 };
 
-// 🍞 Toast Notification
+// 🍞 Toast
 function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-emerald-500 text-emerald-950 px-6 py-3 rounded-full font-black text-[10px] uppercase emerald-glow z-[100] animate-fade-in flex items-center gap-3';
@@ -84,61 +87,53 @@ function showToast(message) {
     }, 3000);
 }
 
-// 👥 Presence Simulation
-function simulateCollaboration() {
-    const presenceContainer = document.querySelector('[data-i18n="reviewingProfile"]');
-    if (!presenceContainer || typeof translations === 'undefined') return;
-    setInterval(() => {
-        const users = ["Hoàng Lê", "Minh Tú", "Linh Chi"];
-        const user = users[Math.floor(Math.random() * users.length)];
-        const baseText = translations[state.currentLang].reviewingProfile;
-        if (presenceContainer) presenceContainer.textContent = `${user} ${baseText}`;
-    }, 10000);
-}
-
-// ☁️ Magic Dropzone Logic
-function initDropzone() {
-    const dz = document.getElementById('dropzone');
-    if (!dz) return;
-    dz.addEventListener('click', () => {
-        showToast(state.currentLang === 'en' ? "AI Parsing CV..." : "AI đang bóc tách CV...");
-    });
-}
-
 // 🏁 Initialize
 function init() {
-    // Reset classes based on screen size
+    // Sync initial body classes
     if (window.innerWidth <= 1024) {
         state.isChatOpen = false;
-        state.isSidebarOpen = false;
         document.body.classList.remove('chat-open');
-        document.body.classList.remove('sidebar-open');
     } else {
         document.body.classList.add('chat-open');
     }
 
     updateLanguage();
-    initDropzone();
-    simulateCollaboration();
 
-    // Event Listeners for ALL possible toggle elements
-    const targets = [
+    // Bind all buttons by ID
+    const bindings = [
         { id: 'langToggle', fn: () => { state.currentLang = state.currentLang === 'en' ? 'vi' : 'en'; updateLanguage(); } },
         { id: 'toggleSidebarMobile', fn: window.toggleSidebar },
+        { id: 'closeSidebarMobile', fn: window.toggleSidebar },
         { id: 'openChatMobile', fn: window.toggleChat },
         { id: 'openChat', fn: window.toggleChat },
         { id: 'closeChat', fn: window.toggleChat }
     ];
 
-    targets.forEach(target => {
-        const el = document.getElementById(target.id);
+    bindings.forEach(bind => {
+        const el = document.getElementById(bind.id);
         if (el) {
             el.addEventListener('click', (e) => {
                 e.preventDefault();
-                target.fn();
+                e.stopPropagation();
+                bind.fn();
             });
         }
     });
+
+    // Other Init
+    const dz = document.getElementById('dropzone');
+    if (dz) dz.addEventListener('click', () => showToast(state.currentLang === 'en' ? "AI Parsing..." : "AI đang bóc tách..."));
+    
+    // Simulate Team Presence
+    setInterval(() => {
+        const presenceContainer = document.querySelector('[data-i18n="reviewingProfile"]');
+        if (presenceContainer && typeof translations !== 'undefined') {
+            const users = ["Hoàng Lê", "Minh Tú", "Linh Chi"];
+            const user = users[Math.floor(Math.random() * users.length)];
+            const baseText = translations[state.currentLang].reviewingProfile;
+            presenceContainer.textContent = `${user} ${baseText}`;
+        }
+    }, 10000);
 }
 
 document.addEventListener('DOMContentLoaded', init);
