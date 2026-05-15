@@ -52,34 +52,42 @@ function filterCandidates(layer) {
 // 📱 Mobile Sidebar Toggle
 function toggleSidebar() {
     state.isSidebarOpen = !state.isSidebarOpen;
-    document.body.classList.toggle('sidebar-open', state.isSidebarOpen);
+    const sidebar = document.getElementById('sidebarLeft');
+    if (sidebar) {
+        sidebar.style.transform = state.isSidebarOpen ? 'translateX(0)' : 'translateX(-100%)';
+    }
 }
 
 // 🤖 AI Sidebar Logic
 function toggleChat() {
     state.isChatOpen = !state.isChatOpen;
-    document.body.classList.toggle('chat-open', state.isChatOpen);
-    
     const sidebar = document.getElementById('aiChatSidebar');
     const main = document.querySelector('main');
     const openBtn = document.getElementById('openChat');
     
+    if (!sidebar) return;
+
     if (window.innerWidth > 1024) {
+        // Desktop behavior
         if (state.isChatOpen) {
             sidebar.style.transform = 'translateX(0)';
             main.style.paddingRight = '380px';
-            openBtn.style.transform = 'translateY(100px)';
-            openBtn.style.opacity = '0';
+            if (openBtn) {
+                openBtn.style.transform = 'translateY(100px)';
+                openBtn.style.opacity = '0';
+            }
         } else {
             sidebar.style.transform = 'translateX(100%)';
             main.style.paddingRight = '0';
-            openBtn.style.transform = 'translateY(0)';
-            openBtn.style.opacity = '1';
+            if (openBtn) {
+                openBtn.style.transform = 'translateY(0)';
+                openBtn.style.opacity = '1';
+            }
         }
     } else {
         // Mobile behavior: Overlay
         sidebar.style.transform = state.isChatOpen ? 'translateX(0)' : 'translateX(100%)';
-        openBtn.style.display = 'none'; // Hide FAB on mobile to use header button
+        if (openBtn) openBtn.style.display = 'none';
     }
 }
 
@@ -119,24 +127,31 @@ function simulateCollaboration() {
 
 // Initialize
 function init() {
+    // Initial state based on screen size
+    if (window.innerWidth <= 1024) {
+        state.isChatOpen = false;
+        const sidebar = document.getElementById('aiChatSidebar');
+        if (sidebar) sidebar.style.transform = 'translateX(100%)';
+    }
+
     updateLanguage();
     initDropzone();
     simulateCollaboration();
-
-    // Default chat state for mobile
-    if (window.innerWidth <= 1024) {
-        state.isChatOpen = false;
-        document.body.classList.remove('chat-open');
-        document.getElementById('aiChatSidebar').style.transform = 'translateX(100%)';
-    }
 
     document.getElementById('langToggle')?.addEventListener('click', () => {
         state.currentLang = state.currentLang === 'en' ? 'vi' : 'en';
         updateLanguage();
     });
 
-    document.getElementById('closeChat')?.addEventListener('click', toggleChat);
-    document.getElementById('openChat')?.addEventListener('click', toggleChat);
+    document.getElementById('closeChat')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleChat();
+    });
+    
+    document.getElementById('openChat')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleChat();
+    });
 }
 
 document.addEventListener('DOMContentLoaded', init);
