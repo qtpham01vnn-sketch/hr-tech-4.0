@@ -130,8 +130,12 @@
                             <span class="material-symbols-outlined text-xs">language</span>
                             <span id="currentLang">EN</span>
                         </button>
+                        <!-- Mobile Toggle -->
+                        <button id="toggleSidebarMobile" class="lg:hidden w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-500/20 transition-colors">
+                            <span class="material-symbols-outlined text-sm">menu</span>
+                        </button>
                         <!-- AI Mobile Toggle -->
-                        <button onclick="toggleChat()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500">
+                        <button id="openChatMobile" onclick="toggleChat()" class="lg:hidden w-10 h-10 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500">
                             <span class="material-symbols-outlined text-sm">auto_awesome</span>
                         </button>
                     </div>
@@ -498,7 +502,7 @@
     </button>
 
     <!-- Right Sidebar: AI Candidate Chat -->
-    <aside id="aiChatSidebar" class="fixed right-0 top-0 h-screen w-full lg:w-[380px] bg-[#0e1511] border-l border-[#242c27] flex flex-col z-[70] transform translate-x-full lg:translate-x-0 transition-transform duration-500 shadow-2xl">
+    <aside id="aiChatSidebar" class="sidebar-right fixed right-0 top-0 h-screen w-full lg:w-[380px] bg-[#0e1511] border-l border-[#242c27] flex flex-col z-[70] transform translate-x-full lg:translate-x-0 transition-transform duration-500 shadow-2xl">
         <div class="p-6 border-b border-[#242c27] flex justify-between items-center bg-[#141a17]">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">

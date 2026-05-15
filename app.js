@@ -1,48 +1,4 @@
-// 🚀 Global Functions (Available immediately for onclick)
-window.toggleSidebar = function() {
-    state.isSidebarOpen = !state.isSidebarOpen;
-    document.body.classList.toggle('sidebar-open', state.isSidebarOpen);
-};
-
-window.toggleChat = function() {
-    state.isChatOpen = !state.isChatOpen;
-    document.body.classList.toggle('chat-open', state.isChatOpen);
-    
-    const main = document.querySelector('main');
-    const openBtn = document.getElementById('openChat');
-    
-    // Desktop padding logic
-    if (window.innerWidth > 1024) {
-        if (main) main.style.paddingRight = state.isChatOpen ? '380px' : '0';
-        if (openBtn) {
-            openBtn.style.transform = state.isChatOpen ? 'translateY(100px)' : 'translateY(0)';
-            openBtn.style.opacity = state.isChatOpen ? '0' : '1';
-        }
-    }
-};
-
-window.filterCandidates = function(layer) {
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        row.style.opacity = '0';
-        setTimeout(() => {
-            if (layer === 'total') {
-                row.style.display = 'table-row';
-                row.style.opacity = '1';
-            } else if (layer === 'shortlist') {
-                const index = Array.from(rows).indexOf(row);
-                row.style.display = index < 2 ? 'table-row' : 'none';
-                row.style.opacity = index < 2 ? '1' : '0';
-            } else {
-                row.style.display = 'table-row';
-                row.style.opacity = '1';
-            }
-        }, 300);
-    });
-    showToast(state.currentLang === 'en' ? `Filtered: ${layer.toUpperCase()}` : `Đã lọc: ${layer.toUpperCase()}`);
-};
-
-// 📦 App State
+// 📦 App State (Must be first)
 const state = {
     currentLang: localStorage.getItem('talentOS_lang') || 'en',
     isChatOpen: window.innerWidth > 1024,
@@ -71,6 +27,49 @@ function updateLanguage() {
     localStorage.setItem('talentOS_lang', lang);
     document.documentElement.lang = lang;
 }
+
+// 🚀 Global Functions
+window.toggleSidebar = function() {
+    state.isSidebarOpen = !state.isSidebarOpen;
+    document.body.classList.toggle('sidebar-open', state.isSidebarOpen);
+};
+
+window.toggleChat = function() {
+    state.isChatOpen = !state.isChatOpen;
+    document.body.classList.toggle('chat-open', state.isChatOpen);
+    
+    // Desktop padding logic
+    if (window.innerWidth > 1024) {
+        const main = document.querySelector('main');
+        const openBtn = document.getElementById('openChat');
+        if (main) main.style.paddingRight = state.isChatOpen ? '380px' : '0';
+        if (openBtn) {
+            openBtn.style.transform = state.isChatOpen ? 'translateY(100px)' : 'translateY(0)';
+            openBtn.style.opacity = state.isChatOpen ? '0' : '1';
+        }
+    }
+};
+
+window.filterCandidates = function(layer) {
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        row.style.opacity = '0';
+        setTimeout(() => {
+            if (layer === 'total') {
+                row.style.display = 'table-row';
+                row.style.opacity = '1';
+            } else if (layer === 'shortlist') {
+                const index = Array.from(rows).indexOf(row);
+                row.style.display = index < 2 ? 'table-row' : 'none';
+                row.style.opacity = index < 2 ? '1' : '0';
+            } else {
+                row.style.display = 'table-row';
+                row.style.opacity = '1';
+            }
+        }, 300);
+    });
+    showToast(state.currentLang === 'en' ? `Filtered: ${layer.toUpperCase()}` : `Đã lọc: ${layer.toUpperCase()}`);
+};
 
 // 🍞 Toast Notification
 function showToast(message) {
@@ -108,9 +107,10 @@ function initDropzone() {
 
 // 🏁 Initialize
 function init() {
-    // Initial Mobile state
+    // Reset classes based on screen size
     if (window.innerWidth <= 1024) {
         state.isChatOpen = false;
+        state.isSidebarOpen = false;
         document.body.classList.remove('chat-open');
         document.body.classList.remove('sidebar-open');
     } else {
@@ -121,16 +121,23 @@ function init() {
     initDropzone();
     simulateCollaboration();
 
-    // Event Listeners
-    document.getElementById('langToggle')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        state.currentLang = state.currentLang === 'en' ? 'vi' : 'en';
-        updateLanguage();
-    });
+    // Event Listeners for ALL possible toggle elements
+    const targets = [
+        { id: 'langToggle', fn: () => { state.currentLang = state.currentLang === 'en' ? 'vi' : 'en'; updateLanguage(); } },
+        { id: 'toggleSidebarMobile', fn: window.toggleSidebar },
+        { id: 'openChatMobile', fn: window.toggleChat },
+        { id: 'openChat', fn: window.toggleChat },
+        { id: 'closeChat', fn: window.toggleChat }
+    ];
 
-    document.getElementById('closeChat')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.toggleChat();
+    targets.forEach(target => {
+        const el = document.getElementById(target.id);
+        if (el) {
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                target.fn();
+            });
+        }
     });
 }
 
