@@ -1,23 +1,20 @@
-# 🚀 HR-Tech 4.0: Overview & Vision
+# 🚀 HR-Tech 4.0: Overview & Vision (V2)
 
 ## 1. Tầm nhìn dự án (Project Vision)
-**HR-Tech 4.0** không chỉ là một Dashboard quản lý tuyển dụng thông thường. Đây là một **Hệ điều hành Tuyển dụng Doanh nghiệp (Enterprise Recruitment OS)** được thiết kế để giải quyết bài toán sàng lọc nhân tài ở quy mô lớn (High-volume hiring) bằng sức mạnh của Trí tuệ nhân tạo (AI).
-
-Ứng dụng hướng tới việc biến quy trình tuyển dụng từ "thủ công, đọc hồ sơ từng người" thành "quản trị dựa trên dữ liệu và tương tác thông minh".
+**HR-Tech 4.0** là một **Hệ điều hành Tuyển dụng Doanh nghiệp (Enterprise Recruitment OS)** cao cấp. Ứng dụng được thiết kế để tối ưu hóa quy trình sàng lọc nhân tài bằng Trí tuệ nhân tạo (AI), mang lại trải nghiệm mượt mà trên cả máy tính để bàn và thiết bị di động.
 
 ## 2. Triết lý thiết kế (Design Philosophy)
-*   **Enterprise Mystery Emerald:** Sử dụng tông nền đen than chì (#0a0f0d) kết hợp với sắc xanh ngọc lục bảo (Emerald Green) để tạo cảm giác quyền lực, chuyên nghiệp nhưng vẫn hiện đại và đậm chất công nghệ.
-*   **High-Contrast Readability:** Loại bỏ các hiệu ứng mờ (blur) hoặc trong suốt (glassmorphism) quá mức để đảm bảo văn bản sắc nét, dễ đọc trong môi trường làm việc cường độ cao.
-*   **Interaction-First:** Mọi thành phần trên giao diện đều phải mang tính tương tác (Clickable, Hoverable) để tạo ra dòng chảy công việc (Workflow) mượt mà.
+*   **Enterprise Mystery Emerald:** Tông màu đen huyền bí kết hợp xanh lục bảo Emerald Green tạo vẻ chuyên nghiệp, sang trọng.
+*   **Adaptive Layout:** Giao diện tự động thích ứng thông minh (Responsive). Trên Desktop, AI Sidebar được tích hợp như một phần của Dashboard; trên Mobile, nó trở thành một lớp phủ tinh tế.
+*   **Stability-First:** Cấu trúc mã nguồn được tinh gọn để đảm bảo ứng dụng luôn hoạt động ổn định trong mọi điều kiện kết nối và thiết bị.
 
-## 3. Cấu trúc thư mục (Folder Structure)
-- `index.html`: Cấu trúc giao diện lõi và các Component UI.
-- `style.css`: Hệ thống Design Tokens, màu sắc và các hiệu ứng tùy chỉnh.
-- `app.js`: Bộ não điều khiển Logic, lọc dữ liệu, xử lý sự kiện và hệ thống mô phỏng.
-- `translations.js`: Bộ từ điển song ngữ (EN/VI) trung tâm.
-- `docs/`: Hệ thống tài liệu hướng dẫn và lưu trữ tri thức dự án.
+## 3. Cấu trúc dự án hiện tại (Current Structure)
+- `index.html`: **Cốt lõi duy nhất**. Chứa toàn bộ giao diện, Logic xử lý (JS) và dữ liệu ngôn ngữ (Translations). Đây là bản "Hợp nhất" để đảm bảo tính ổn định tuyệt đối.
+- `style.css`: Hệ thống Design Tokens và các hiệu ứng thẩm mỹ đặc trưng.
+- `docs/`: Hệ thống tài liệu hướng dẫn chuyên sâu cho việc bàn giao và phát triển tương lai.
+- `.gitignore`: Cấu hình loại bỏ các tệp rác khi đẩy lên GitHub.
 
 ## 4. Giá trị cốt lõi (Core Values)
-1.  **AI-Driven:** Mọi quyết định tuyển dụng đều được hỗ trợ bởi các báo cáo "Lỗ hổng kỹ năng" và "Phân tích ngữ cảnh".
-2.  **Collaborative:** Tạo ra không gian làm việc nhóm nơi các Recruiter thấy được hành động của nhau theo thời gian thực.
-3.  **Bilingual Native:** Hỗ trợ song ngữ sâu từ giao diện đến nội dung AI, sẵn sàng cho các tập đoàn đa quốc gia.
+1.  **AI-Native Experience**: Trải nghiệm tương tác với AI Candidate Oracle xuyên suốt.
+2.  **Zero-Configuration Deployment**: Triển khai cực nhanh lên Vercel chỉ với một cú nhấn chuột.
+3.  **High-Fidelity Interaction**: Hệ thống nút bấm và điều hướng được tối ưu hóa cho cả chuột và cảm ứng điện thoại.
