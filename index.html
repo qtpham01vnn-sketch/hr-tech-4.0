@@ -26,6 +26,12 @@
                 backdrop-filter: blur(4px);
             }
         }
+        
+        /* Desktop AI Sidebar Logic */
+        @media (min-width: 1025px) {
+            .sidebar-right { transform: translateX(100%); }
+            body.chat-open .sidebar-right { transform: translateX(0); }
+        }
     </style>
     <script>
         tailwind.config = {
@@ -503,7 +509,7 @@
     </button>
 
     <!-- Right Sidebar: AI Candidate Chat -->
-    <aside id="aiChatSidebar" class="sidebar-right fixed right-0 top-0 h-screen w-full lg:w-[380px] bg-[#0e1511] border-l border-[#242c27] flex flex-col z-[70] transform translate-x-full lg:translate-x-0 transition-transform duration-500 shadow-2xl">
+    <aside id="aiChatSidebar" class="sidebar-right fixed right-0 top-0 h-screen w-full lg:w-[380px] bg-[#0e1511] border-l border-[#242c27] flex flex-col z-[70] transform translate-x-full transition-transform duration-500 shadow-2xl">
         <div class="p-6 border-b border-[#242c27] flex justify-between items-center bg-[#141a17]">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
