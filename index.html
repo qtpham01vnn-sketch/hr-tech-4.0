@@ -11,10 +11,19 @@
     <style>
         @media (max-width: 1024px) {
             .main-content { padding-left: 0 !important; padding-right: 0 !important; }
-            .sidebar-left { transform: translateX(-100%); }
-            .sidebar-right { transform: translateX(100%); width: 100% !important; }
-            .sidebar-open .sidebar-left { transform: translateX(0); }
-            .chat-open .sidebar-right { transform: translateX(0); }
+            .sidebar-left { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar-right { transform: translateX(100%); transition: transform 0.3s ease; width: 100% !important; }
+            body.sidebar-open .sidebar-left { transform: translateX(0); }
+            body.chat-open .sidebar-right { transform: translateX(0); }
+        }
+        /* Mobile Overlay Background */
+        body.sidebar-open::after, body.chat-open::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 55;
+            backdrop-filter: blur(4px);
         }
     </style>
     <script>

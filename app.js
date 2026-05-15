@@ -1,13 +1,58 @@
-// App State
+// 🚀 Global Functions (Available immediately for onclick)
+window.toggleSidebar = function() {
+    state.isSidebarOpen = !state.isSidebarOpen;
+    document.body.classList.toggle('sidebar-open', state.isSidebarOpen);
+};
+
+window.toggleChat = function() {
+    state.isChatOpen = !state.isChatOpen;
+    document.body.classList.toggle('chat-open', state.isChatOpen);
+    
+    const main = document.querySelector('main');
+    const openBtn = document.getElementById('openChat');
+    
+    // Desktop padding logic
+    if (window.innerWidth > 1024) {
+        if (main) main.style.paddingRight = state.isChatOpen ? '380px' : '0';
+        if (openBtn) {
+            openBtn.style.transform = state.isChatOpen ? 'translateY(100px)' : 'translateY(0)';
+            openBtn.style.opacity = state.isChatOpen ? '0' : '1';
+        }
+    }
+};
+
+window.filterCandidates = function(layer) {
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        row.style.opacity = '0';
+        setTimeout(() => {
+            if (layer === 'total') {
+                row.style.display = 'table-row';
+                row.style.opacity = '1';
+            } else if (layer === 'shortlist') {
+                const index = Array.from(rows).indexOf(row);
+                row.style.display = index < 2 ? 'table-row' : 'none';
+                row.style.opacity = index < 2 ? '1' : '0';
+            } else {
+                row.style.display = 'table-row';
+                row.style.opacity = '1';
+            }
+        }, 300);
+    });
+    showToast(state.currentLang === 'en' ? `Filtered: ${layer.toUpperCase()}` : `Đã lọc: ${layer.toUpperCase()}`);
+};
+
+// 📦 App State
 const state = {
     currentLang: localStorage.getItem('talentOS_lang') || 'en',
     isChatOpen: window.innerWidth > 1024,
     isSidebarOpen: false
 };
 
-// Localization Engine
+// 🌎 Localization Engine
 function updateLanguage() {
     const lang = state.currentLang;
+    if (typeof translations === 'undefined') return;
     const dictionary = translations[lang];
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -27,79 +72,6 @@ function updateLanguage() {
     document.documentElement.lang = lang;
 }
 
-// 🎯 Funnel Filter Logic
-function filterCandidates(layer) {
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        row.style.opacity = '0';
-        setTimeout(() => {
-            if (layer === 'total') {
-                row.style.display = 'table-row';
-                row.style.opacity = '1';
-            } else if (layer === 'shortlist') {
-                const index = Array.from(rows).indexOf(row);
-                row.style.display = index < 2 ? 'table-row' : 'none';
-                row.style.opacity = index < 2 ? '1' : '0';
-            } else {
-                row.style.display = 'table-row';
-                row.style.opacity = '1';
-            }
-        }, 300);
-    });
-    showToast(state.currentLang === 'en' ? `Filtered: ${layer.toUpperCase()}` : `Đã lọc: ${layer.toUpperCase()}`);
-}
-
-// 📱 Mobile Sidebar Toggle
-function toggleSidebar() {
-    state.isSidebarOpen = !state.isSidebarOpen;
-    const sidebar = document.getElementById('sidebarLeft');
-    if (sidebar) {
-        sidebar.style.transform = state.isSidebarOpen ? 'translateX(0)' : 'translateX(-100%)';
-    }
-}
-
-// 🤖 AI Sidebar Logic
-function toggleChat() {
-    state.isChatOpen = !state.isChatOpen;
-    const sidebar = document.getElementById('aiChatSidebar');
-    const main = document.querySelector('main');
-    const openBtn = document.getElementById('openChat');
-    
-    if (!sidebar) return;
-
-    if (window.innerWidth > 1024) {
-        // Desktop behavior
-        if (state.isChatOpen) {
-            sidebar.style.transform = 'translateX(0)';
-            main.style.paddingRight = '380px';
-            if (openBtn) {
-                openBtn.style.transform = 'translateY(100px)';
-                openBtn.style.opacity = '0';
-            }
-        } else {
-            sidebar.style.transform = 'translateX(100%)';
-            main.style.paddingRight = '0';
-            if (openBtn) {
-                openBtn.style.transform = 'translateY(0)';
-                openBtn.style.opacity = '1';
-            }
-        }
-    } else {
-        // Mobile behavior: Overlay
-        sidebar.style.transform = state.isChatOpen ? 'translateX(0)' : 'translateX(100%)';
-        if (openBtn) openBtn.style.display = 'none';
-    }
-}
-
-// ☁️ Magic Dropzone Logic
-function initDropzone() {
-    const dz = document.getElementById('dropzone');
-    if (!dz) return;
-    dz.addEventListener('click', () => {
-        showToast(state.currentLang === 'en' ? "AI Parsing CV..." : "AI đang bóc tách CV...");
-    });
-}
-
 // 🍞 Toast Notification
 function showToast(message) {
     const toast = document.createElement('div');
@@ -116,45 +88,50 @@ function showToast(message) {
 // 👥 Presence Simulation
 function simulateCollaboration() {
     const presenceContainer = document.querySelector('[data-i18n="reviewingProfile"]');
-    if (!presenceContainer) return;
+    if (!presenceContainer || typeof translations === 'undefined') return;
     setInterval(() => {
         const users = ["Hoàng Lê", "Minh Tú", "Linh Chi"];
         const user = users[Math.floor(Math.random() * users.length)];
         const baseText = translations[state.currentLang].reviewingProfile;
-        presenceContainer.textContent = `${user} ${baseText}`;
+        if (presenceContainer) presenceContainer.textContent = `${user} ${baseText}`;
     }, 10000);
 }
 
-// Initialize
+// ☁️ Magic Dropzone Logic
+function initDropzone() {
+    const dz = document.getElementById('dropzone');
+    if (!dz) return;
+    dz.addEventListener('click', () => {
+        showToast(state.currentLang === 'en' ? "AI Parsing CV..." : "AI đang bóc tách CV...");
+    });
+}
+
+// 🏁 Initialize
 function init() {
-    // Initial state based on screen size
+    // Initial Mobile state
     if (window.innerWidth <= 1024) {
         state.isChatOpen = false;
-        const sidebar = document.getElementById('aiChatSidebar');
-        if (sidebar) sidebar.style.transform = 'translateX(100%)';
+        document.body.classList.remove('chat-open');
+        document.body.classList.remove('sidebar-open');
+    } else {
+        document.body.classList.add('chat-open');
     }
 
     updateLanguage();
     initDropzone();
     simulateCollaboration();
 
-    document.getElementById('langToggle')?.addEventListener('click', () => {
+    // Event Listeners
+    document.getElementById('langToggle')?.addEventListener('click', (e) => {
+        e.preventDefault();
         state.currentLang = state.currentLang === 'en' ? 'vi' : 'en';
         updateLanguage();
     });
 
     document.getElementById('closeChat')?.addEventListener('click', (e) => {
         e.preventDefault();
-        toggleChat();
-    });
-    
-    document.getElementById('openChat')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleChat();
+        window.toggleChat();
     });
 }
 
 document.addEventListener('DOMContentLoaded', init);
-window.toggleSidebar = toggleSidebar;
-window.toggleChat = toggleChat;
-window.filterCandidates = filterCandidates;
