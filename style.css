@@ -1,0 +1,88 @@
+:root {
+    /* Google AI Studio Inspired Sharp Palette */
+    --primary: #4edea3;
+    --primary-glow: rgba(78, 222, 163, 0.1);
+    --secondary: #10b981;
+    --bg-dark: #0a0f0d; /* Deeper charcoal black */
+    --surface: #141a17; /* Solid surface for sharpness */
+    --surface-bright: #1c2420;
+    --border: #242c27; /* Solid subtle border */
+    --text-primary: #ffffff; /* Pure white for sharpness */
+    --text-secondary: #94a3b8;
+    --glass-bg: #141a17; /* Solid background instead of transparent */
+    --glass-border: #242c27;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+/* Sharp Classes */
+.glass {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.glass-hover:hover {
+    background: var(--surface-bright);
+    border-color: var(--primary);
+    transition: all 0.2s ease;
+}
+
+/* Emerald Glow Effects - Reduced for Sharpness */
+.emerald-glow {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.text-glow {
+    text-shadow: none; /* Removed for sharpness */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface-bright);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Funnel Visualization */
+.funnel-layer {
+    clip-path: polygon(5% 0%, 95% 0%, 85% 100%, 15% 100%);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.funnel-layer:hover {
+    transform: scale(1.02);
+    filter: brightness(1.2);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
