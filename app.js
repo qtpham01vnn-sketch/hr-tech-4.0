@@ -7,12 +7,9 @@ const state = {
 
 // 🌎 Localization Engine
 function updateLanguage() {
-    const lang = state.currentLang;
-    if (typeof translations === 'undefined') {
-        console.error("Translations not found!");
-        return;
-    }
-    const dictionary = translations[lang];
+    if (typeof translations === 'undefined') return;
+    const dictionary = translations[state.currentLang];
+    if (!dictionary) return;
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -25,10 +22,10 @@ function updateLanguage() {
     });
 
     const langToggleBtn = document.getElementById('currentLang');
-    if (langToggleBtn) langToggleBtn.textContent = lang.toUpperCase();
+    if (langToggleBtn) langToggleBtn.textContent = state.currentLang.toUpperCase();
 
-    localStorage.setItem('talentOS_lang', lang);
-    document.documentElement.lang = lang;
+    localStorage.setItem('talentOS_lang', state.currentLang);
+    document.documentElement.lang = state.currentLang;
 }
 
 // 🚀 Core Functions
@@ -47,8 +44,8 @@ window.toggleChat = function() {
         const openBtn = document.getElementById('openChat');
         if (main) main.style.paddingRight = state.isChatOpen ? '380px' : '0';
         if (openBtn) {
-            openBtn.style.transform = state.isChatOpen ? 'translateY(100px)' : 'translateY(0)';
             openBtn.style.opacity = state.isChatOpen ? '0' : '1';
+            openBtn.style.pointerEvents = state.isChatOpen ? 'none' : 'auto';
         }
     }
 };
@@ -74,10 +71,10 @@ window.filterCandidates = function(layer) {
     showToast(state.currentLang === 'en' ? `Filtered: ${layer.toUpperCase()}` : `Đã lọc: ${layer.toUpperCase()}`);
 };
 
-// 🍞 Toast
+// 🍞 Toast Notification
 function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-emerald-500 text-emerald-950 px-6 py-3 rounded-full font-black text-[10px] uppercase emerald-glow z-[100] animate-fade-in flex items-center gap-3';
+    toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-emerald-500 text-emerald-950 px-6 py-3 rounded-full font-black text-[10px] uppercase emerald-glow z-[100] animate-fade-in flex items-center gap-3 transition-all duration-500';
     toast.innerHTML = `<span class="material-symbols-outlined text-sm">notifications</span> ${message}`;
     document.body.appendChild(toast);
     setTimeout(() => {
@@ -89,24 +86,27 @@ function showToast(message) {
 
 // 🏁 Initialize
 function init() {
-    // Sync initial body classes
+    // Initial state setup
     if (window.innerWidth <= 1024) {
         state.isChatOpen = false;
         document.body.classList.remove('chat-open');
     } else {
         document.body.classList.add('chat-open');
+        const main = document.querySelector('main');
+        if (main) main.style.paddingRight = '380px';
     }
 
     updateLanguage();
 
-    // Bind all buttons by ID
+    // Event Binding
     const bindings = [
         { id: 'langToggle', fn: () => { state.currentLang = state.currentLang === 'en' ? 'vi' : 'en'; updateLanguage(); } },
         { id: 'toggleSidebarMobile', fn: window.toggleSidebar },
         { id: 'closeSidebarMobile', fn: window.toggleSidebar },
         { id: 'openChatMobile', fn: window.toggleChat },
         { id: 'openChat', fn: window.toggleChat },
-        { id: 'closeChat', fn: window.toggleChat }
+        { id: 'closeChat', fn: window.toggleChat },
+        { id: 'dropzone', fn: () => showToast(state.currentLang === 'en' ? "AI Parsing CV..." : "AI đang bóc tách CV...") }
     ];
 
     bindings.forEach(bind => {
@@ -114,17 +114,12 @@ function init() {
         if (el) {
             el.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
                 bind.fn();
             });
         }
     });
 
-    // Other Init
-    const dz = document.getElementById('dropzone');
-    if (dz) dz.addEventListener('click', () => showToast(state.currentLang === 'en' ? "AI Parsing..." : "AI đang bóc tách..."));
-    
-    // Simulate Team Presence
+    // Presence Simulation
     setInterval(() => {
         const presenceContainer = document.querySelector('[data-i18n="reviewingProfile"]');
         if (presenceContainer && typeof translations !== 'undefined') {
