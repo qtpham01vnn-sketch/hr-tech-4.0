@@ -109,22 +109,27 @@
             <div id="navDashboard" onclick="switchView('dashboard')" class="nav-item group flex items-center gap-3 px-4 py-3 bg-emerald-500/10 border-l-2 border-emerald-500 rounded-r-xl transition-all cursor-pointer text-emerald-500 font-semibold">
                 <span class="material-symbols-outlined text-emerald-500" style="font-variation-settings: 'FILL' 1;">dashboard</span>
                 <span class="text-sm" data-i18n="dashboard">Strategic Dashboard</span>
+                <span class="material-symbols-outlined text-xs ml-auto text-emerald-500/40" title="Locked & Stabilized by SOP">lock</span>
             </div>
             <div id="navJobArchitect" onclick="switchView('jobArchitect')" class="nav-item group flex items-center gap-3 px-4 py-3 text-[#bbcabf]/60 hover:text-[#4edea3] hover:bg-[#242c27]/50 rounded-xl transition-all cursor-pointer font-medium">
                 <span class="material-symbols-outlined">architecture</span>
                 <span class="text-sm" data-i18n="jobArchitect">Job Architect</span>
+                <span class="material-symbols-outlined text-xs ml-auto text-emerald-500/20" title="Locked & Stabilized by SOP">lock</span>
             </div>
             <div id="navScreener" onclick="switchView('screener')" class="nav-item group flex items-center gap-3 px-4 py-3 text-[#bbcabf]/60 hover:text-[#4edea3] hover:bg-[#242c27]/50 rounded-xl transition-all cursor-pointer font-medium">
                 <span class="material-symbols-outlined">psychology</span>
                 <span class="text-sm" data-i18n="screener">Candidate AI Screener</span>
+                <span class="material-symbols-outlined text-xs ml-auto text-emerald-500/20" title="Locked & Stabilized by SOP">lock</span>
             </div>
             <div id="navPlanner" onclick="switchView('planner')" class="nav-item group flex items-center gap-3 px-4 py-3 text-[#bbcabf]/60 hover:text-[#4edea3] hover:bg-[#242c27]/50 rounded-xl transition-all cursor-pointer font-medium">
                 <span class="material-symbols-outlined">calendar_today</span>
                 <span class="text-sm" data-i18n="planner">Interview Planner</span>
+                <span class="material-symbols-outlined text-xs ml-auto text-emerald-500/20" title="Locked & Stabilized by SOP">lock</span>
             </div>
             <div id="navAnalytics" onclick="switchView('analytics')" class="nav-item group flex items-center gap-3 px-4 py-3 text-[#bbcabf]/60 hover:text-[#4edea3] hover:bg-[#242c27]/50 rounded-xl transition-all cursor-pointer font-medium">
                 <span class="material-symbols-outlined">analytics</span>
                 <span class="text-sm" data-i18n="analytics">Talent Analytics</span>
+                <span class="material-symbols-outlined text-xs ml-auto text-emerald-500/20" title="Locked & Stabilized by SOP">lock</span>
             </div>
         </nav>
 
@@ -702,31 +707,339 @@
 
         <!-- Interview Planner View -->
         <div id="viewPlanner" class="p-4 lg:p-10 space-y-6 lg:space-y-8 animate-fade-in hidden">
-            <div class="border-b border-[#242c27] pb-6">
-                <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="planner">Interview Planner</h2>
-                <p class="text-xs text-[#94a3b8]">Automate interview coordination, invite shortlisters, and record structural panel feedback.</p>
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-[#242c27] pb-6 gap-4">
+                <div>
+                    <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="plannerHeader">AI Interview Planner & Board Scorecard</h2>
+                    <p class="text-xs text-[#94a3b8]" data-i18n="plannerSubtitle">Automate interview coordination, dispatch virtual room invites, and centralize panel feedback scorecards.</p>
+                </div>
+                <!-- Stats Row -->
+                <div class="flex gap-4">
+                    <div class="bg-[#141a17] border border-[#242c27] px-4 py-2 rounded-xl text-center min-w-[90px]">
+                        <p class="text-[8px] font-bold text-[#94a3b8] uppercase tracking-wider" data-i18n="plannerStatsQueue">Shortlist Queue</p>
+                        <p id="statQueueCount" class="text-base font-black text-white mt-0.5">0</p>
+                    </div>
+                    <div class="bg-[#141a17] border border-[#242c27] px-4 py-2 rounded-xl text-center min-w-[90px]">
+                        <p class="text-[8px] font-bold text-[#94a3b8] uppercase tracking-wider" data-i18n="plannerStatsPending">Pending Eval</p>
+                        <p id="statPendingCount" class="text-base font-black text-white mt-0.5">0</p>
+                    </div>
+                    <div class="bg-[#141a17] border border-[#242c27] px-4 py-2 rounded-xl text-center min-w-[90px]">
+                        <p class="text-[8px] font-bold text-[#94a3b8] uppercase tracking-wider" data-i18n="plannerStatsCompleted">Evaluated Board</p>
+                        <p id="statCompletedCount" class="text-base font-black text-white mt-0.5">0</p>
+                    </div>
+                </div>
             </div>
-            
-            <div class="bg-[#141a17] border border-[#242c27] rounded-3xl p-10 text-center space-y-4">
-                <span class="material-symbols-outlined text-6xl text-emerald-500/20 animate-pulse">calendar_today</span>
-                <h3 class="text-lg font-black text-white">Interview Automation Hub</h3>
-                <p class="text-xs text-[#94a3b8] max-w-md mx-auto">Coordinate open interview slots, auto-trigger invite emails with virtual room links, and centralize internal hiring committee scorecards automatically.</p>
-                <div class="inline-block px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase rounded-lg border border-emerald-500/20">Future Roadmap Item</div>
+
+            <!-- Main Interactive Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Column: Shortlisted Queue -->
+                <div class="lg:col-span-4 bg-[#141a17]/50 border border-[#242c27] rounded-3xl p-5 space-y-4">
+                    <div>
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest" data-i18n="plannerSidebarTitle">Shortlisted Candidates</h3>
+                        <p class="text-[9px] text-[#94a3b8] font-bold" data-i18n="plannerSidebarSubtitle">Select a candidate to begin action.</p>
+                    </div>
+                    <!-- Candidate Queue List -->
+                    <div id="plannerQueueList" class="space-y-3 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Workspace -->
+                <div class="lg:col-span-8 min-h-[500px]">
+                    <!-- 1. Empty State Workspace -->
+                    <div id="plannerEmptyWorkspace" class="h-full bg-[#141a17] border border-[#242c27] rounded-3xl p-16 text-center flex flex-col justify-center items-center space-y-4">
+                        <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center animate-pulse">
+                            <span class="material-symbols-outlined text-3xl text-emerald-400">calendar_today</span>
+                        </div>
+                        <h3 class="text-base font-black text-white" data-i18n="tabSchedule">Schedule Interview</h3>
+                        <p class="text-xs text-[#94a3b8] max-w-sm leading-relaxed" data-i18n="plannerSelectCandidatePrompt">Please select a shortlisted candidate from the left panel to begin scheduling or evaluating.</p>
+                    </div>
+
+                    <!-- 2. Active Workspace Panel -->
+                    <div id="plannerActiveWorkspace" class="hidden bg-[#141a17] border border-[#242c27] rounded-3xl p-6 lg:p-8 space-y-6">
+                        <!-- Active Candidate Profile Summary -->
+                        <div class="flex justify-between items-start bg-[#0e1511] border border-[#242c27] p-4 rounded-2xl">
+                            <div class="flex items-center gap-4">
+                                <img id="plannerActiveAvatar" src="" class="w-12 h-12 rounded-full border border-emerald-500/30 object-cover">
+                                <div>
+                                    <h4 id="plannerActiveName" class="text-sm font-black text-white">Name</h4>
+                                    <p id="plannerActiveRole" class="text-[10px] text-emerald-400 font-bold">Role</p>
+                                    <p id="plannerActiveEmail" class="text-[9px] text-[#94a3b8] font-bold">Email</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span id="plannerActiveStatus" class="px-2 py-0.5 bg-yellow-500/10 text-yellow-400 text-[8px] font-black uppercase tracking-wider rounded border border-yellow-500/20">Needs Schedule</span>
+                                <div class="mt-2 text-right">
+                                    <span class="text-[8px] uppercase tracking-wider text-[#94a3b8] font-bold" data-i18n="matching">Matching</span>
+                                    <p id="plannerActiveMatch" class="text-lg font-black text-emerald-400">92%</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Twin Sub-Tabs Selector -->
+                        <div class="flex border-b border-[#242c27] relative">
+                            <button id="tabScheduleBtn" onclick="switchPlannerTab('schedule')" class="flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-emerald-500 text-emerald-400 transition-all duration-300">
+                                <span class="flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">event</span>
+                                    <span data-i18n="tabSchedule">Schedule Interview</span>
+                                </span>
+                            </button>
+                            <button id="tabScorecardBtn" onclick="switchPlannerTab('scorecard')" class="flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-transparent text-[#94a3b8] hover:text-white transition-all duration-300">
+                                <span class="flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">assignment_turned_in</span>
+                                    <span data-i18n="tabScorecard">Board Scorecard</span>
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Pane 1: Schedule Interview -->
+                        <div id="paneSchedule" class="space-y-6">
+                            <div class="space-y-3">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-[#94a3b8] block" data-i18n="scheduleTimeLabel">Select Interview Time Slot</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="timeSlotContainer">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Meet Link Box & Checkbox Options -->
+                            <div class="bg-[#1c2420]/30 border border-[#242c27] p-4 rounded-2xl space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-emerald-500 text-base">video_camera_front</span>
+                                        <div>
+                                            <p class="text-[10px] font-bold text-white uppercase tracking-wider" data-i18n="meetLink">Meet Link</p>
+                                            <p id="generatedMeetLink" class="text-[9px] text-[#94a3b8] font-mono">https://meet.google.com/xyz-pdq-abc</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="regenerateMeetLink()" class="px-2.5 py-1 bg-emerald-950 border border-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase tracking-widest rounded hover:bg-emerald-500 hover:text-emerald-950 transition-colors">
+                                        Regen
+                                    </button>
+                                </div>
+                                <div class="h-px bg-[#242c27]"></div>
+                                <div class="flex flex-col gap-2">
+                                    <label class="flex items-center gap-2.5 cursor-pointer text-[10px] text-[#bbcabf] font-bold">
+                                        <input type="checkbox" id="chkSendEmail" checked class="w-3.5 h-3.5 bg-[#0e1511] border-emerald-800 rounded text-emerald-500 focus:ring-0">
+                                        <span>Send automated calendar notification email to candidate</span>
+                                    </label>
+                                    <label class="flex items-center gap-2.5 cursor-pointer text-[10px] text-[#bbcabf] font-bold">
+                                        <input type="checkbox" id="chkAttachSyllabus" checked class="w-3.5 h-3.5 bg-[#0e1511] border-emerald-800 rounded text-emerald-500 focus:ring-0">
+                                        <span>Attach competency structural handbook guidelines</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Action button -->
+                            <button id="btnScheduleAction" onclick="submitSchedule()" class="w-full py-4 bg-emerald-500 text-emerald-950 text-xs font-black uppercase tracking-widest rounded-xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 emerald-glow">
+                                <span class="material-symbols-outlined text-base">forward_to_inbox</span>
+                                <span data-i18n="btnScheduleInvite">Schedule & Send Invitation</span>
+                            </button>
+                        </div>
+
+                        <!-- Pane 2: Board Scorecard -->
+                        <div id="paneScorecard" class="hidden space-y-6">
+                            <div>
+                                <h3 class="text-xs font-black text-white uppercase tracking-wider" data-i18n="scorecardHeader">Standardized Competency Evaluation</h3>
+                                <p class="text-[9px] text-[#94a3b8] font-bold mt-1">Review the interview transcript, test results, and grade across core competencies.</p>
+                            </div>
+
+                            <!-- 4 Competency Score Inputs -->
+                            <div class="space-y-4 bg-[#1c2420]/30 border border-[#242c27] p-5 rounded-2xl">
+                                <!-- criteria 1 -->
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-[#bbcabf]">
+                                        <span data-i18n="scorecardTechLabel">Technical & Live Coding</span>
+                                        <span id="lblScoreTech" class="text-emerald-400 font-black">4.0 ★</span>
+                                    </div>
+                                    <input type="range" min="1.0" max="5.0" step="0.1" value="4.0" id="rngScoreTech" oninput="updateScoreLabel('Tech')" class="w-full h-1.5 bg-[#0e1511] rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                </div>
+                                <!-- criteria 2 -->
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-[#bbcabf]">
+                                        <span data-i18n="scorecardDesignLabel">System Architecture & Design</span>
+                                        <span id="lblScoreDesign" class="text-emerald-400 font-black">4.0 ★</span>
+                                    </div>
+                                    <input type="range" min="1.0" max="5.0" step="0.1" value="4.0" id="rngScoreDesign" oninput="updateScoreLabel('Design')" class="w-full h-1.5 bg-[#0e1511] rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                </div>
+                                <!-- criteria 3 -->
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-[#bbcabf]">
+                                        <span data-i18n="scorecardCultureLabel">Culture Fit & Mindset</span>
+                                        <span id="lblScoreCulture" class="text-emerald-400 font-black">4.0 ★</span>
+                                    </div>
+                                    <input type="range" min="1.0" max="5.0" step="0.1" value="4.0" id="rngScoreCulture" oninput="updateScoreLabel('Culture')" class="w-full h-1.5 bg-[#0e1511] rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                </div>
+                                <!-- criteria 4 -->
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-[#bbcabf]">
+                                        <span data-i18n="scorecardVideoLabel">Charisma & Video Clarity</span>
+                                        <span id="lblScoreVideo" class="text-emerald-400 font-black">4.0 ★</span>
+                                    </div>
+                                    <input type="range" min="1.0" max="5.0" step="0.1" value="4.0" id="rngScoreVideo" oninput="updateScoreLabel('Video')" class="w-full h-1.5 bg-[#0e1511] rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                                </div>
+                            </div>
+
+                            <!-- Comments Text Area -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]" data-i18n="scorecardCommentLabel">Panel Comments & Feedback Details</label>
+                                <textarea id="txtScorecardComments" rows="3" class="w-full bg-[#0e1511] border border-[#242c27] text-[11px] text-white rounded-xl p-3 focus:outline-none focus:border-emerald-500 transition-colors placeholder-[#94a3b8]/40" data-i18n-placeholder="scorecardCommentPlaceholder" placeholder="Detailed notes regarding strengths, weaknesses, and hiring recommendations..."></textarea>
+                            </div>
+
+                            <!-- Submit action button -->
+                            <button id="btnScorecardAction" onclick="submitScorecard()" class="w-full py-4 bg-emerald-500 text-emerald-950 text-xs font-black uppercase tracking-widest rounded-xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 emerald-glow">
+                                <span class="material-symbols-outlined text-base">cloud_done</span>
+                                <span data-i18n="btnSubmitScorecard">Submit & Sync Scorecard</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Talent Analytics View -->
+        <!-- Talent Analytics View -->
         <div id="viewAnalytics" class="p-4 lg:p-10 space-y-6 lg:space-y-8 animate-fade-in hidden">
-            <div class="border-b border-[#242c27] pb-6">
-                <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="analytics">Talent Analytics</h2>
-                <p class="text-xs text-[#94a3b8]">Evaluate conversion funnels, pipeline demographics, quality indices, and operational recruitment throughput.</p>
+            <!-- Header & Filter Row -->
+            <div class="border-b border-[#242c27] pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="analyticsHeader">Talent Analytics & Sourcing Cockpit</h2>
+                    <p class="text-xs text-[#94a3b8]" data-i18n="analyticsSubtitle">Evaluate recruitment conversion ratios, pipeline velocity, sourced skill density, and AI sourcing advisory insights.</p>
+                </div>
+                <!-- Interactive Position Select Filter -->
+                <div class="flex items-center gap-2 bg-[#141a17]/80 border border-[#242c27] px-3 py-1.5 rounded-xl backdrop-blur-md">
+                    <span class="material-symbols-outlined text-emerald-400 text-sm">filter_alt</span>
+                    <select id="analyticsFilter" onchange="changeAnalyticsFilter(this.value)" class="bg-transparent text-xs text-white border-none focus:outline-none cursor-pointer pr-4 font-bold">
+                        <option value="all" data-i18n="filterAllPositions" class="bg-[#141a17] text-white">All Sourced Positions</option>
+                        <option value="Java Cloud Architect" data-i18n="filterJavaArchitect" class="bg-[#141a17] text-white">Java Cloud Architect</option>
+                        <option value="Python AI Engineer" data-i18n="filterPythonEngineer" class="bg-[#141a17] text-white">Python AI Engineer</option>
+                        <option value="Product Manager" data-i18n="filterProductManager" class="bg-[#141a17] text-white">Product Manager</option>
+                    </select>
+                </div>
             </div>
             
-            <div class="bg-[#141a17] border border-[#242c27] rounded-3xl p-10 text-center space-y-4">
-                <span class="material-symbols-outlined text-6xl text-emerald-500/20 animate-pulse">analytics</span>
-                <h3 class="text-lg font-black text-white">Advanced Recruitment Pipeline Insights</h3>
-                <p class="text-xs text-[#94a3b8] max-w-md mx-auto">Monitor operational KPIs like average time-to-hire, funnel leakage points, talent sourcing ROI, and predictive success factors based on historically retained performers.</p>
-                <div class="inline-block px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase rounded-lg border border-emerald-500/20">Advanced Analytics Phase</div>
+            <!-- Metric Cards Grid (4 columns) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                <!-- Card 1: Total Candidates -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 relative overflow-hidden backdrop-blur-md group hover:border-emerald-500/30 transition-all duration-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider" data-i18n="statTotalCandidates">Total Sourced Candidates</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-lg">group</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-black text-white" id="statTotalVal">0</div>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 text-emerald-400 select-none group-hover:scale-125 transition-transform duration-700">
+                        <span class="material-symbols-outlined text-7xl">group</span>
+                    </div>
+                </div>
+                
+                <!-- Card 2: Average Match Score -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 relative overflow-hidden backdrop-blur-md group hover:border-emerald-500/30 transition-all duration-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider" data-i18n="statAvgMatchScore">Average Match Score</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-lg">percent</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-black text-white" id="statMatchVal">0%</div>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 text-emerald-400 select-none group-hover:scale-125 transition-transform duration-700">
+                        <span class="material-symbols-outlined text-7xl">percent</span>
+                    </div>
+                </div>
+                
+                <!-- Card 3: Pipeline Conversion Ratio -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 relative overflow-hidden backdrop-blur-md group hover:border-emerald-500/30 transition-all duration-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider" data-i18n="statPipelineConversion">Pipeline Conversion Ratio</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-lg">filter_alt</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-black text-white" id="statConversionVal">0%</div>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 text-emerald-400 select-none group-hover:scale-125 transition-transform duration-700">
+                        <span class="material-symbols-outlined text-7xl">filter_alt</span>
+                    </div>
+                </div>
+                
+                <!-- Card 4: Average Sourcing Velocity -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 relative overflow-hidden backdrop-blur-md group hover:border-emerald-500/30 transition-all duration-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider" data-i18n="statAverageVelocity">Average Sourcing Velocity</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-lg">speed</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-black text-white" id="statVelocityVal">0d</div>
+                    <div class="absolute -right-4 -bottom-4 opacity-5 text-emerald-400 select-none group-hover:scale-125 transition-transform duration-700">
+                        <span class="material-symbols-outlined text-7xl">speed</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Charts Grid (Funnel + Donut/Segment) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                <!-- SVG Sourcing Sieve Funnel Chart (7 columns) -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 lg:p-8 backdrop-blur-md lg:col-span-7 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-black text-white" data-i18n="chartFunnelTitle">Pipeline Conversion Funnel</h3>
+                        <p class="text-[11px] text-[#94a3b8] mb-6" data-i18n="chartFunnelSubtitle">Track leakage rates and counts across recruitment stages.</p>
+                    </div>
+                    
+                    <!-- Dynamic Funnel Render Container -->
+                    <div class="w-full flex items-center justify-center min-h-[300px]" id="funnelChartContainer">
+                        <!-- Will be dynamically rendered with responsive dynamic SVG elements -->
+                    </div>
+                </div>
+                
+                <!-- Sourcing Channels Chart (5 columns) -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 lg:p-8 backdrop-blur-md lg:col-span-5 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-black text-white" data-i18n="chartChannelsTitle">Sourcing Channel Distribution</h3>
+                        <p class="text-[11px] text-[#94a3b8] mb-6" data-i18n="chartChannelsSubtitle">Distribution of active candidates by sourcing source channels.</p>
+                    </div>
+                    
+                    <div class="flex flex-col items-center justify-center space-y-6 min-h-[300px] w-full">
+                        <!-- Dynamic Circular Segment SVG Sourcing Channels Chart -->
+                        <div id="channelsChartContainer" class="w-full flex justify-center items-center">
+                            <!-- Injected circular segment SVG or CSS visual representation -->
+                        </div>
+                        <!-- Sourcing Channels Legends -->
+                        <div id="channelsLegend" class="grid grid-cols-2 gap-3 w-full text-xs">
+                            <!-- Injected legends -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lower Grid (Skill Density Heatmap + AI Advisory) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+                <!-- Sourced Skill Density Heatmap (6 columns) -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 lg:p-8 backdrop-blur-md lg:col-span-6 flex flex-col justify-start">
+                    <div>
+                        <h3 class="text-base font-black text-white" data-i18n="chartSkillsTitle">Sourced Skill Density Mapping</h3>
+                        <p class="text-[11px] text-[#94a3b8] mb-6" data-i18n="chartSkillsSubtitle">Heat density analysis of technical stack keywords extracted from CVs.</p>
+                    </div>
+                    
+                    <!-- Dynamic Skill Tags Heat Cloud Container -->
+                    <div id="skillsHeatmapContainer" class="flex flex-wrap gap-2.5 min-h-[160px] content-start py-4">
+                        <!-- Dynamically filled with tags showing hot tech stack keywords -->
+                    </div>
+                </div>
+                
+                <!-- AI Sourcing Advisory (6 columns) -->
+                <div class="bg-[#141a17]/40 border border-[#242c27] rounded-3xl p-6 lg:p-8 backdrop-blur-md lg:col-span-6 flex flex-col justify-start">
+                    <div>
+                        <h3 class="text-base font-black text-emerald-400 flex items-center gap-2" data-i18n="aiAdvisoryTitle">
+                            <span class="material-symbols-outlined animate-pulse">auto_awesome</span>
+                            AI Sourcing & Acquisition Advisory
+                        </h3>
+                        <p class="text-[11px] text-[#94a3b8] mb-6" data-i18n="aiAdvisoryDesc">Data-backed advisory regarding channel budgets, quality control, and skills replenishment.</p>
+                    </div>
+                    
+                    <!-- Dynamic AI Recommendation Insights -->
+                    <div id="aiAdvisoryContainer" class="space-y-4 min-h-[160px] w-full">
+                        <!-- Injected clean, beautifully structured glass cards with premium dynamic content -->
+                    </div>
+                </div>
             </div>
         </div>
 
