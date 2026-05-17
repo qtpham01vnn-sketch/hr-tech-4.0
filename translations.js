@@ -64,7 +64,11 @@ const translations = {
         "restoreDefaultsBtn": "Khôi phục mặc định",
         "levelLabel": "Cấp",
         "matchLabel": "Phù hợp",
-        "comingSoon": "Tính năng Tạo Hồ sơ Công việc Mới đang được phát triển trong lộ trình tiếp theo!"
+        "comingSoon": "Tính năng Tạo Hồ sơ Công việc Mới đang được phát triển trong lộ trình tiếp theo!",
+        "benchTechMCQ": "Trắc nghiệm Tech",
+        "benchSystemCoding": "Lập trình Hệ thống",
+        "benchCultureFit": "Phù hợp Văn hóa",
+        "benchVideoClarity": "Thần thái Video"
     },
     "en": {
         "appName": "HR-Tech 4.0",
@@ -131,7 +135,11 @@ const translations = {
         "restoreDefaultsBtn": "Restore Defaults",
         "levelLabel": "Level",
         "matchLabel": "Match",
-        "comingSoon": "Create Job Profile feature is coming soon in the next roadmap phase!"
+        "comingSoon": "Create Job Profile feature is coming soon in the next roadmap phase!",
+        "benchTechMCQ": "Tech MCQ",
+        "benchSystemCoding": "System Coding",
+        "benchCultureFit": "Culture Fit",
+        "benchVideoClarity": "Video Clarity"
     }
 };
 
