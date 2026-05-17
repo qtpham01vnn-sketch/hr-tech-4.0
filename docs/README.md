@@ -14,6 +14,8 @@ Chào mừng bạn đến với kho lưu trữ tri thức của **HR-Tech 4.0**.
     *   Quy chuẩn màu sắc, Typography và các hiệu ứng Visual cao cấp.
 5.  [**Lộ trình Phát triển (FUTURE_ROADMAP.md)**](./FUTURE_ROADMAP.md)
     *   Kế hoạch nâng cấp lên sản phẩm SaaS thực thụ với AI tích hợp.
+6.  [**Hướng dẫn Vận hành & Tối ưu v4.4 (WALKTHROUGH_V4.4.md)**](./WALKTHROUGH_V4.4.md)
+    *   Chi tiết kỹ thuật tối ưu hóa cuộn 60fps GPU và phẫu thuật sửa lỗi tương tác đóng/mở.
 
 ---
 **Lưu ý:** Bộ tài liệu này là tài sản trí tuệ của dự án. Hãy đọc kỹ [OVERVIEW.md](./OVERVIEW.md) trước khi thực hiện bất kỳ thay đổi nào vào mã nguồn chính.

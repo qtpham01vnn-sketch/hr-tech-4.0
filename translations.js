@@ -45,7 +45,9 @@ const translations = {
         "aiCompare": "Dựa trên danh sách rút gọn, Axhi có nền tảng bảo mật mạnh nhất, nhưng Jamin có kinh nghiệm gần đây hơn về kiến trúc Cloud Native.",
         "askAIPlaceholder": "Hỏi AI: 'So sánh kỹ năng kỹ thuật của ứng viên'...",
         "teamOnline": "Nhóm đang Online",
-        "reviewingProfile": "Đang xem hồ sơ của..."
+        "reviewingProfile": "Đang xem hồ sơ của...",
+        "dropzoneText": "Thả CV để phân tích",
+        "templatesDesc": "Chọn mẫu để test nhanh phân tích CV bằng AI và nạp ứng viên."
     },
     "en": {
         "appName": "HR-Tech 4.0",
@@ -93,9 +95,15 @@ const translations = {
         "aiCompare": "Based on your shortlist, Axhi has the strongest Security background, but Jamin has more recent experience with Cloud Native architectures.",
         "askAIPlaceholder": "Ask AI: 'Compare candidates' technical skills'...",
         "teamOnline": "Team Online",
-        "reviewingProfile": "Reviewing profile..."
+        "reviewingProfile": "Reviewing profile...",
+        "dropzoneText": "Drop CV to Parse",
+        "templatesDesc": "Select templates to instantly test AI CV parsing and inject new profiles."
     }
 };
+
+if (typeof window !== 'undefined') {
+    window.translations = translations;
+}
 
 if (typeof module !== 'undefined') {
     module.exports = translations;

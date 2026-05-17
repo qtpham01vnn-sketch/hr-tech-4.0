@@ -7,6 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <!-- SDKs -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+        window.googleGenerativeAI = { GoogleGenerativeAI };
+        console.log("🚀 Gemini SDK Loaded via ESM");
+    </script>
+
     <link rel="stylesheet" href="style.css">
     <style>
         @media (max-width: 1024px) {
@@ -31,6 +40,32 @@
         @media (min-width: 1025px) {
             .sidebar-right { transform: translateX(100%); }
             body.chat-open .sidebar-right { transform: translateX(0); }
+        }
+
+        #chatContent {
+            height: calc(100vh - 220px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            padding-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        #chatContent::-webkit-scrollbar { display: none; }
+        
+        main {
+            scroll-behavior: smooth;
+        }
+        
+        /* GPU Accelerated Dedicated Layers for 60fps Drawer Slides & Panels */
+        .sidebar-left, .sidebar-right, #candidateDetailsDrawer, #parsingModal {
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+
+        .talent-card {
+            min-width: 200px;
+            transition: all 0.3s ease;
         }
     </style>
     <script>
@@ -109,9 +144,9 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content pl-0 lg:pl-64 pr-0 lg:pr-[380px] min-h-screen transition-all duration-500">
+    <main class="main-content pl-0 lg:pl-64 pr-0 lg:pr-[380px] min-h-screen transition-[padding] duration-300">
         <!-- Header with Dropzone -->
-        <header class="sticky top-0 z-40 bg-[#0a0f0d]/90 backdrop-blur-md border-b border-[#242c27] px-4 lg:px-10 py-4">
+        <header class="sticky top-0 z-40 bg-[#0a0f0d]/95 border-b border-[#242c27] px-4 lg:px-10 py-4">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 lg:gap-8">
                 <div class="w-full flex-1 flex items-center gap-4 lg:gap-6">
                     <!-- Mobile Menu Toggle -->
@@ -125,9 +160,10 @@
                     </div>
                     
                     <!-- Magic Dropzone (Hidden on mobile, visible on tablet+) -->
-                    <div id="dropzone" class="hidden md:flex flex-1 h-11 lg:h-12 border-2 border-dashed border-emerald-500/20 rounded-xl items-center justify-center gap-3 px-4 group hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all cursor-pointer overflow-hidden relative">
+                    <div id="dropzone" onclick="document.getElementById('cvFileInput').click()" class="hidden md:flex flex-1 h-11 lg:h-12 border-2 border-dashed border-emerald-500/20 rounded-xl items-center justify-center gap-3 px-4 group hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all cursor-pointer overflow-hidden relative">
                         <span class="material-symbols-outlined text-emerald-500/40 group-hover:text-emerald-500 text-sm">upload_file</span>
-                        <p class="text-[9px] lg:text-[10px] font-bold text-emerald-500/40 group-hover:text-emerald-500">Drop CV to Parse</p>
+                        <p class="text-[9px] lg:text-[10px] font-bold text-emerald-500/40 group-hover:text-emerald-500" data-i18n="dropzoneText">Drop CV to Parse</p>
+                        <input type="file" id="cvFileInput" class="hidden" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
                     </div>
                 </div>
 
@@ -252,11 +288,25 @@
 
             <!-- Top Candidates Table -->
             <section class="glass overflow-hidden">
-                <div class="p-6 border-b border-[#242c27] flex justify-between items-center">
-                    <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500" data-i18n="topCandidates">Top Potential Candidates</h3>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" checked class="accent-emerald-500">
-                        <span class="text-[10px] font-bold text-[#94a3b8]" data-i18n="multiSelect">Multi-select rows</span>
+                <div class="p-6 border-b border-[#242c27] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500" data-i18n="topCandidates">Top Potential Candidates</h3>
+                        <p class="text-[9px] text-[#94a3b8] mt-1" data-i18n="templatesDesc">Select templates to instantly test AI CV parsing and inject new profiles.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="parseAndInjectCandidate('Senior Java Architect')" class="px-2.5 py-1 bg-emerald-950/40 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider rounded text-[#4edea3] hover:bg-emerald-500 hover:text-emerald-950 transition-all flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[10px]">upload_file</span> Java Architect CV
+                        </button>
+                        <button onclick="parseAndInjectCandidate('Lead Python AI Engineer')" class="px-2.5 py-1 bg-emerald-950/40 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider rounded text-[#4edea3] hover:bg-emerald-500 hover:text-emerald-950 transition-all flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[10px]">upload_file</span> Python AI CV
+                        </button>
+                        <button onclick="parseAndInjectCandidate('Senior Product Manager')" class="px-2.5 py-1 bg-emerald-950/40 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider rounded text-[#4edea3] hover:bg-emerald-500 hover:text-emerald-950 transition-all flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[10px]">upload_file</span> Product Manager CV
+                        </button>
+                        <div class="flex items-center gap-2 ml-4">
+                            <input type="checkbox" checked class="accent-emerald-500">
+                            <span class="text-[10px] font-bold text-[#94a3b8]" data-i18n="multiSelect">Multi-select rows</span>
+                        </div>
                     </div>
                 </div>
                 <div class="overflow-x-auto custom-scrollbar">
@@ -271,119 +321,17 @@
                                 <th class="px-8 py-5 font-black text-right" data-i18n="action">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-emerald-900/10">
-                                    <!-- Candidate Row 1 -->
-                                    <tr class="hover:bg-emerald-900/10 transition-colors group">
-                                        <td class="px-6 py-6"><input type="checkbox" checked class="w-4 h-4 bg-[#0e1511] border-emerald-800 rounded text-emerald-500 focus:ring-0"></td>
-                                        <td class="px-6 py-6">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-12 h-12 rounded-full border border-emerald-500/20 p-0.5">
-                                                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmh9uJhg0No_48s0ZJB20sBbVSiDTs5cQz8ppxR5Sidi3ZNlvehrDnzO3qg2KLhNRE8mWJ5STUYLADIbq2eLJDKULhIhWaomI2YRC4GEEeqRFysm6N9Zm0yYaG2Oh1SHoC4bu_Pl8A5BbOp5iAaut_hmv6diLEHB-jkX-KZV1rJZyjyvPoYwQ9g3BlfhKxQRtk6_u9KVWtsg2Yr0kqtFiPRTGyUohK8SQ7vn9aUP0hqHojIo61jFr0aQnlQqyw_mIslL41av3_8zk" class="w-full h-full object-cover rounded-full shadow-lg group-hover:scale-110 transition-transform">
-                                                </div>
-                                                <div>
-                                                    <p class="text-sm font-bold text-emerald-400">Axhi Boctar</p>
-                                                    <p class="text-[10px] text-[#94a3b8]">Rawm@meeverted</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-6 text-center">
-                                            <div class="inline-flex items-center justify-center w-12 h-12 relative">
-                                                <svg class="w-full h-full -rotate-90">
-                                                    <circle cx="24" cy="24" r="20" fill="transparent" stroke="#064e3b" stroke-width="4"></circle>
-                                                    <circle cx="24" cy="24" r="20" fill="transparent" stroke="#10b981" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="7.5" stroke-linecap="round" class="emerald-glow"></circle>
-                                                </svg>
-                                                <span class="absolute text-[10px] font-black text-emerald-500">94%</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-6">
-                                            <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20">Final Interview</span>
-                                            <p class="text-[9px] text-[#94a3b8] mt-1 font-medium">Next: Salary Negotiation</p>
-                                        </td>
-                                        <td class="px-6 py-6 text-center">
-                                            <div class="flex items-center justify-center gap-0.5 text-emerald-500">
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm">star</span>
-                                            </div>
-                                            <p class="text-[9px] text-[#94a3b8] mt-1">4.2 / 5.0</p>
-                                        </td>
-                                        <td class="px-6 py-6">
-                                            <div class="flex flex-col gap-2">
-                                                <div class="h-6 w-40 flex items-end gap-1.5 overflow-hidden">
-                                                    <div class="flex-1 bg-emerald-500/40 h-[70%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500/20 h-[40%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500 h-[90%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500/60 h-[50%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500/30 h-[30%] rounded-t"></div>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-[9px] font-bold text-red-400/80 uppercase" data-i18n="skillGap">AI Gaps:</span>
-                                                    <span class="text-[9px] text-[#94a3b8]">Kubernetes, Terraform</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-6 text-right">
-                                            <button class="px-4 py-1.5 bg-emerald-900/30 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-emerald-500 hover:text-emerald-950 transition-all" data-i18n="analyze">Analyze</button>
-                                        </td>
-                                    </tr>
-                                    <!-- Candidate Row 2 -->
-                                    <tr class="hover:bg-emerald-900/10 transition-colors group">
-                                        <td class="px-6 py-6"><input type="checkbox" checked class="w-4 h-4 bg-[#0e1511] border-emerald-800 rounded text-emerald-500 focus:ring-0"></td>
-                                        <td class="px-6 py-6">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-12 h-12 rounded-full border border-emerald-500/20 p-0.5">
-                                                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSS85jr8v3M6xdYiPn2dUS4HMUmq4fsTFW5oQ-5qt3zhatATbb9zBJqxpfC_cwnAJ79uOCoEQyteGF0c7nuQ60ic9NrK4dAj-rb9plZP7I6sLdoHirztgxc6TL0CBIKOmUUfarrNkN3dQeym991Sff7JvNzbrjpjny1zOrfKzcu0UF6HDjYQEIhjb31R4WOamkL93BqJ67nazHvzFhx1s-Pt1h_EwOcz3bFaGVbeQogkwTM6psgy2KOjj3S7QbZ4wR_XYb2fL1nvI" class="w-full h-full object-cover rounded-full shadow-lg group-hover:scale-110 transition-transform">
-                                                </div>
-                                                <div>
-                                                    <p class="text-sm font-bold text-emerald-400">Jamin Pagan</p>
-                                                    <p class="text-[10px] text-[#94a3b8]">Raostan@meeverted</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-6 text-center">
-                                            <div class="inline-flex items-center justify-center w-12 h-12 relative">
-                                                <svg class="w-full h-full -rotate-90">
-                                                    <circle cx="24" cy="24" r="20" fill="transparent" stroke="#064e3b" stroke-width="4"></circle>
-                                                    <circle cx="24" cy="24" r="20" fill="transparent" stroke="#10b981" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="18.8" stroke-linecap="round" class="emerald-glow opacity-80"></circle>
-                                                </svg>
-                                                <span class="absolute text-[10px] font-black text-emerald-500">85%</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-6">
-                                            <span class="px-2 py-1 bg-[#1c2420] text-[#94a3b8] text-[10px] font-bold rounded-full border border-[#242c27]">Technical Test</span>
-                                            <p class="text-[9px] text-[#94a3b8] mt-1 font-medium">Scheduled: May 20</p>
-                                        </td>
-                                        <td class="px-6 py-6 text-center">
-                                            <div class="flex items-center justify-center gap-0.5 text-emerald-500">
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
-                                                <span class="material-symbols-outlined text-sm">star</span>
-                                                <span class="material-symbols-outlined text-sm">star</span>
-                                            </div>
-                                            <p class="text-[9px] text-[#94a3b8] mt-1">3.5 / 5.0</p>
-                                        </td>
-                                        <td class="px-6 py-6">
-                                            <div class="flex flex-col gap-2">
-                                                <div class="h-6 w-40 flex items-end gap-1.5 overflow-hidden">
-                                                    <div class="flex-1 bg-emerald-500/20 h-[30%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500/50 h-[60%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500 h-[85%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500/40 h-[45%] rounded-t"></div>
-                                                    <div class="flex-1 bg-emerald-500/10 h-[55%] rounded-t"></div>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-[9px] font-bold text-red-400/80 uppercase" data-i18n="skillGap">AI Gaps:</span>
-                                                    <span class="text-[9px] text-[#94a3b8]">System Design, NoSQL</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-6 text-right">
-                                            <button class="px-4 py-1.5 bg-emerald-900/30 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-emerald-500 hover:text-emerald-950 transition-all" data-i18n="analyze">Analyze</button>
-                                        </td>
-                                    </tr>
+                        <tbody id="candidateTableBody" class="divide-y divide-emerald-900/10">
+                            <!-- Data will be loaded from Supabase -->
+                            <tr id="loadingRow">
+                                <td colspan="7" class="px-8 py-20 text-center">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                                        <p class="text-xs font-bold text-emerald-500/60 uppercase tracking-widest animate-pulse">Syncing with Supabase...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
                                 </tbody>
                             </table>
                         </div>
@@ -550,211 +498,287 @@
         <!-- Input Area -->
         <div class="p-6 border-t border-[#242c27] bg-[#141a17]">
             <div class="relative group">
-                <textarea class="w-full bg-[#0a0f0d] border border-[#242c27] rounded-xl py-4 pl-4 pr-12 text-xs text-white focus:outline-none focus:border-emerald-500/50 transition-all resize-none h-24 placeholder-emerald-900" data-i18n-placeholder="askAIPlaceholder" placeholder="Ask AI..."></textarea>
-                <button class="absolute right-3 bottom-3 w-8 h-8 bg-emerald-500 text-emerald-950 rounded-lg flex items-center justify-center hover:scale-105 transition-all emerald-glow">
+                <textarea id="chatInput" class="w-full bg-[#0a0f0d] border border-[#242c27] rounded-xl py-4 pl-4 pr-12 text-xs text-white focus:outline-none focus:border-emerald-500/50 transition-all resize-none h-24 placeholder-emerald-900" data-i18n-placeholder="askAIPlaceholder" placeholder="Ask AI..."></textarea>
+                <button id="sendMessage" class="absolute right-3 bottom-3 w-8 h-8 bg-emerald-500 text-emerald-950 rounded-lg flex items-center justify-center hover:scale-105 transition-all emerald-glow">
                     <span class="material-symbols-outlined text-sm">send</span>
                 </button>
             </div>
         </div>
     </aside>
 
-    <script>
-        // Combined State and Logic
-        const translations = {
-            "vi": {
-                "appName": "HR-Tech 4.0",
-                "enterprise": "Hệ điều hành Tuyển dụng Tập đoàn",
-                "dashboard": "Bảng điều khiển chiến lược",
-                "jobArchitect": "Kiến trúc Công việc",
-                "screener": "Sàng lọc Ứng viên AI",
-                "planner": "Lập lịch Phỏng vấn",
-                "analytics": "Phân tích Nhân tài",
-                "talentPool": "Kho Nhân tài",
-                "settings": "Cài đặt hệ thống",
-                "searchPlaceholder": "Tìm kiếm ứng viên, kỹ năng hoặc hồ sơ...",
-                "activeJobProfiles": "Hồ sơ Công việc đang chạy",
-                "aiProfilers": "Bộ chỉ số AI",
-                "cultureFit": "Độ tương thích Văn hóa",
-                "technicalMastery": "Năng lực chuyên môn",
-                "globalFunnel": "Phễu Tuyển dụng Toàn cầu (Tổng quan)",
-                "totalApplicants": "Tổng ứng viên",
-                "aiScreened": "Đã sàng lọc AI",
-                "topRanked": "Xếp hạng đầu",
-                "shortlisted": "Danh sách rút gọn",
-                "bulkAIScreen": "Sàng lọc AI Hàng loạt",
-                "exportPool": "Xuất sang Kho Nhân tài",
-                "topCandidates": "Danh sách Ứng viên Tiềm năng",
-                "profile": "Hồ sơ",
-                "matching": "Độ phù hợp",
-                "jobTitle": "Vị trí",
-                "aiSummary": "Tóm tắt AI & Lỗ hổng kỹ năng",
-                "action": "Hành động",
-                "analyze": "Phân tích sâu",
-                "multiSelect": "Chọn nhiều dòng",
-                "talentPoolHub": "Kho Nhân tài Tự động & Trung tâm Tái kết nối",
-                "searchHidden": "Tìm kiếm ứng viên tiềm năng từ các đợt trước",
-                "archivedCandidate": "Ứng viên đã lưu trữ",
-                "recommended": "GỢI Ý:",
-                "reengage": "Tái kết nối sau",
-                "months": "Tháng",
-                "skillFit": "Phù hợp kỹ năng mạnh",
-                "stage": "Giai đoạn",
-                "rating": "Hội đồng",
-                "skillGap": "Lỗ hổng AI",
-                "aiOracle": "Cố vấn Nhân tài AI",
-                "aiContext": "Trí tuệ theo ngữ cảnh",
-                "aiGreeting": "Chào bạn. Tôi đã lập chỉ mục cho tất cả hồ sơ. Bạn có thể hỏi tôi về bất kỳ ứng viên nào.",
-                "aiCompare": "Dựa trên danh sách rút gọn, Axhi có nền tảng bảo mật mạnh nhất, nhưng Jamin có kinh nghiệm gần đây hơn về kiến trúc Cloud Native.",
-                "askAIPlaceholder": "Hỏi AI: 'So sánh kỹ năng kỹ thuật của ứng viên'...",
-                "teamOnline": "Nhóm đang Online",
-                "reviewingProfile": "Đang xem hồ sơ của..."
-            },
-            "en": {
-                "appName": "HR-Tech 4.0",
-                "enterprise": "Enterprise Recruitment OS",
-                "dashboard": "Strategic Dashboard",
-                "jobArchitect": "Job Architect",
-                "screener": "Candidate AI Screener",
-                "planner": "Interview Planner",
-                "analytics": "Talent Analytics",
-                "talentPool": "Talent Pool",
-                "settings": "System Settings",
-                "searchPlaceholder": "Search candidates, skills, or profiles...",
-                "activeJobProfiles": "Active Job Profiles",
-                "aiProfilers": "AI Profilers",
-                "cultureFit": "Culture Fit Score",
-                "technicalMastery": "Technical Mastery",
-                "globalFunnel": "Global Talent Funnel (Overview)",
-                "totalApplicants": "Total Applicants",
-                "aiScreened": "AI Screened",
-                "topRanked": "Top Ranked",
-                "shortlisted": "Shortlisted",
-                "bulkAIScreen": "Bulk AI Screen",
-                "exportPool": "Export to Talent Pool",
-                "topCandidates": "Top Potential Candidates",
-                "profile": "Profile",
-                "matching": "Matching",
-                "jobTitle": "Job Title",
-                "aiSummary": "AI Summary & Skill Gaps",
-                "action": "Action",
-                "analyze": "Deep Analysis",
-                "multiSelect": "Multi-select rows",
-                "talentPoolHub": "Automated Talent Pool & Re-engagement Hub",
-                "searchHidden": "Searching for Hidden Talent from Previous Cohorts",
-                "archivedCandidate": "Archived Candidate",
-                "recommended": "RECOMMENDED:",
-                "reengage": "Re-engage in",
-                "months": "Months",
-                "skillFit": "Strong Skill Fit",
-                "stage": "Stage",
-                "rating": "Board",
-                "skillGap": "AI Gaps",
-                "aiOracle": "AI Candidate Oracle",
-                "aiContext": "Context-Aware Intelligence",
-                "aiGreeting": "Hello. I've indexed all CVs. Ask me anything about candidates, comparisons, or technical depth.",
-                "aiCompare": "Based on your shortlist, Axhi has the strongest Security background, but Jamin has more recent experience with Cloud Native architectures.",
-                "askAIPlaceholder": "Ask AI: 'Compare candidates' technical skills'...",
-                "teamOnline": "Team Online",
-                "reviewingProfile": "Reviewing profile..."
-            }
-        };
+    <!-- AI Resume Parser Overlay Modal -->
+    <div id="parsingModal" class="fixed inset-0 bg-[#0a0f0d]/80 backdrop-blur-xl z-[90] flex items-center justify-center p-6 transform scale-95 opacity-0 pointer-events-none transition-all duration-500">
+        <!-- Main Card -->
+        <div class="bg-[#0e1511]/90 border border-[#242c27] rounded-3xl p-8 max-w-sm w-full shadow-2xl relative overflow-hidden">
+            <!-- Close button (only visible on success/error, default hidden) -->
+            <button id="closeParsingModalBtn" onclick="closeParsingModal()" class="absolute right-5 top-5 material-symbols-outlined text-[#94a3b8] hover:text-white transition-colors hidden">close</button>
 
-        const state = {
-            currentLang: 'en',
-            isChatOpen: window.innerWidth > 1024,
-            isSidebarOpen: false
-        };
+            <!-- 1. Active Parsing State Container -->
+            <div id="parsingActiveState" class="space-y-6 text-center">
+                <!-- Circular Scanning Radar -->
+                <div class="flex justify-center items-center py-6">
+                    <div class="relative w-20 h-20 rounded-full border-4 border-emerald-500/20 flex items-center justify-center overflow-hidden">
+                        <div class="absolute inset-0 border-t-4 border-emerald-500 rounded-full animate-spin"></div>
+                        <span class="material-symbols-outlined text-emerald-500 text-2xl animate-pulse">document_scanner</span>
+                    </div>
+                </div>
 
-        function updateLanguage() {
-            const dictionary = translations[state.currentLang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (dictionary[key]) el.textContent = dictionary[key];
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (dictionary[key]) el.placeholder = dictionary[key];
-            });
-            const langToggleBtn = document.getElementById('currentLang');
-            if (langToggleBtn) langToggleBtn.textContent = state.currentLang.toUpperCase();
-            document.documentElement.lang = state.currentLang;
-        }
+                <div>
+                    <h3 class="text-xs font-black text-white uppercase tracking-widest">AI CV Analyzer v4.4</h3>
+                    <p id="parsingFileName" class="text-[9px] text-[#94a3b8] font-bold mt-1">resume_file.pdf</p>
+                </div>
 
-        window.toggleSidebar = function() {
-            state.isSidebarOpen = !state.isSidebarOpen;
-            document.body.classList.toggle('sidebar-open', state.isSidebarOpen);
-        };
+                <!-- Step Logs -->
+                <div class="space-y-3 text-left bg-[#141a17] border border-[#242c27] p-4 rounded-2xl max-w-xs mx-auto">
+                    <div id="logStep1" class="flex items-center gap-3 text-[9px] font-bold text-emerald-500/40">
+                        <span class="material-symbols-outlined text-xs">pending</span>
+                        <span>Reading PDF document stream...</span>
+                    </div>
+                    <div id="logStep2" class="flex items-center gap-3 text-[9px] font-bold text-emerald-500/40">
+                        <span class="material-symbols-outlined text-xs">pending</span>
+                        <span>Gemini AI semantic parsing...</span>
+                    </div>
+                    <div id="logStep3" class="flex items-center gap-3 text-[9px] font-bold text-emerald-500/40">
+                        <span class="material-symbols-outlined text-xs">pending</span>
+                        <span>Calculating competency match...</span>
+                    </div>
+                    <div id="logStep4" class="flex items-center gap-3 text-[9px] font-bold text-emerald-500/40">
+                        <span class="material-symbols-outlined text-xs">pending</span>
+                        <span>Injecting into Supabase pool...</span>
+                    </div>
+                </div>
+            </div>
 
-        window.toggleChat = function() {
-            state.isChatOpen = !state.isChatOpen;
-            document.body.classList.toggle('chat-open', state.isChatOpen);
-            
-            const openBtn = document.getElementById('openChat');
-            const main = document.querySelector('main');
+            <!-- 2. Parse Success State Container -->
+            <div id="parsingSuccessState" class="space-y-6 text-center hidden">
+                <!-- Large Success Icon -->
+                <div class="flex justify-center items-center py-4">
+                    <div class="w-14 h-14 rounded-full bg-emerald-500/10 border-2 border-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-bounce">
+                        <span class="material-symbols-outlined text-emerald-500 text-2xl font-black">check_circle</span>
+                    </div>
+                </div>
 
-            if (window.innerWidth > 1024) {
-                if (main) main.style.paddingRight = state.isChatOpen ? '380px' : '0';
-                if (openBtn) {
-                    // Di chuyển nút ngôi sao sang trái khi mở bảng AI
-                    openBtn.style.right = state.isChatOpen ? '400px' : '24px';
-                    openBtn.style.transform = state.isChatOpen ? 'scale(0.8)' : 'scale(1)';
-                }
-            } else {
-                // Trên mobile thì ẩn nút khi mở
-                if (openBtn) openBtn.style.opacity = state.isChatOpen ? '0' : '1';
-            }
-        };
+                <div>
+                    <h3 class="text-xs font-black text-white uppercase tracking-widest">Parsing Successful!</h3>
+                    <p class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider mt-1">MATCHING COEFFICIENT CALCULATED</p>
+                </div>
 
-        window.filterCandidates = function(layer) {
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                row.style.opacity = '0';
-                setTimeout(() => {
-                    const isVisible = (layer === 'total' || (layer === 'shortlist' && Array.from(rows).indexOf(row) < 2));
-                    row.style.display = isVisible ? 'table-row' : 'none';
-                    row.style.opacity = isVisible ? '1' : '0';
-                }, 300);
-            });
-        };
+                <!-- Match Score and Candidate Summary -->
+                <div class="bg-[#141a17] border border-[#242c27] p-5 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3 text-left">
+                            <img id="successAvatar" src="" class="w-8 h-8 rounded-full border border-emerald-500/30 object-cover">
+                            <div>
+                                <h4 id="successName" class="text-xs font-black text-white">Nguyen Van Nam</h4>
+                                <p id="successEmail" class="text-[8px] text-[#94a3b8] font-bold">nam@domain.com</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span id="successScore" class="text-xl font-black text-emerald-400">91%</span>
+                        </div>
+                    </div>
+                    <div class="h-px bg-[#242c27]"></div>
+                    <div class="text-left space-y-1">
+                        <p class="text-[8px] uppercase tracking-widest text-[#4edea3]/40 font-bold">Candidate Recommendation</p>
+                        <p id="successSummary" class="text-[9px] text-[#bbcabf] leading-relaxed line-clamp-2">Talented engineer recommended for shortlisting.</p>
+                    </div>
+                </div>
 
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 bg-emerald-500 text-emerald-950 px-6 py-3 rounded-full font-black text-[10px] uppercase emerald-glow z-[100] transition-all duration-500';
-            toast.innerHTML = message;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
-        }
+                <!-- Action Button -->
+                <button id="successAnalyzeBtn" class="w-full py-3 bg-emerald-500 text-emerald-950 text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg emerald-glow">
+                    <span class="material-symbols-outlined text-sm">analytics</span> Phân tích sâu ứng viên này
+                </button>
+            </div>
+        </div>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.innerWidth <= 1024) {
-                state.isChatOpen = false;
-                document.body.classList.remove('chat-open');
-            } else {
-                document.body.classList.add('chat-open');
-                const main = document.querySelector('main');
-                if (main) main.style.paddingRight = '380px';
-            }
+    <!-- Candidate Detailed Analysis Drawer (Tier 2 & Tier 3 Screening) -->
+    <aside id="candidateDetailsDrawer" class="fixed right-0 top-0 h-screen w-full md:w-[480px] bg-[#0e1511] border-l border-[#242c27] flex flex-col z-[80] transform translate-x-full transition-transform duration-500 shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="p-6 border-b border-[#242c27] flex justify-between items-center bg-[#141a17]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-emerald-500 text-sm">badge</span>
+                </div>
+                <div>
+                    <h3 id="drawerName" class="text-sm font-black text-white">Candidate Name</h3>
+                    <p id="drawerEmail" class="text-[9px] text-[#94a3b8] font-bold">email@domain.com</p>
+                </div>
+            </div>
+            <button onclick="closeCandidateDetails()" class="material-symbols-outlined text-[#94a3b8] hover:text-white transition-colors">close</button>
+        </div>
 
-            updateLanguage();
+        <!-- Scrollable Details Panel -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+            <!-- 1. Profile Status & Board Score -->
+            <div class="bg-[#141a17] border border-[#242c27] p-5 rounded-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <img id="drawerAvatar" src="" class="w-14 h-14 rounded-full border-2 border-emerald-500/30 object-cover p-0.5">
+                        <div>
+                            <span id="drawerStage" class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-bold rounded-full border border-emerald-500/20">Final Interview</span>
+                            <div class="flex items-center gap-1 text-emerald-500 mt-1.5" id="drawerBoardStars">
+                                <!-- Stars populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] uppercase tracking-widest text-[#4edea3]/40 font-bold" data-i18n="matching">Matching</p>
+                        <p id="drawerMatchingPercent" class="text-2xl font-black text-emerald-400">98%</p>
+                    </div>
+                </div>
 
-            const bindings = [
-                { id: 'langToggle', fn: () => { state.currentLang = state.currentLang === 'en' ? 'vi' : 'en'; updateLanguage(); } },
-                { id: 'toggleSidebarMobile', fn: window.toggleSidebar },
-                { id: 'closeSidebarMobile', fn: window.toggleSidebar },
-                { id: 'openChatMobile', fn: window.toggleChat },
-                { id: 'openChat', fn: window.toggleChat },
-                { id: 'closeChat', fn: window.toggleChat },
-                { id: 'dropzone', fn: () => showToast(state.currentLang === 'en' ? "AI Parsing..." : "AI đang bóc tách...") }
-            ];
+                <div class="pt-3 border-t border-[#3c4a42]/20 flex justify-between items-center">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" id="drawerShortlistCheckbox" class="w-4 h-4 bg-[#0a0f0d] border-emerald-800 rounded text-emerald-500 focus:ring-0">
+                        <span class="text-[10px] font-black text-emerald-400 group-hover:text-emerald-300 transition-colors uppercase tracking-widest" data-i18n="shortlisted">Shortlist Candidate</span>
+                    </label>
+                    <span id="drawerStatusText" class="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 uppercase">ACTIVE</span>
+                </div>
+            </div>
 
-            bindings.forEach(bind => {
-                const el = document.getElementById(bind.id);
-                if (el) el.addEventListener('click', (e) => { e.preventDefault(); bind.fn(); });
-            });
-        });
-    </script>
+            <!-- 2. Pillar 1: Standardized Competency & Values Fit -->
+            <div class="space-y-4">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 border-b border-[#242c27] pb-1.5 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-xs">radar</span> PILLAR 1: Competency & Cultural Values
+                </h4>
+                
+                <!-- Competency Metrics -->
+                <div class="space-y-3 bg-[#1c2420]/40 p-4 rounded-xl border border-[#242c27]">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-[#bbcabf]" data-i18n="technicalMastery">Technical Mastery (Kỹ năng cứng)</span>
+                            <span id="drawerTechScore" class="text-[10px] font-black text-emerald-400">92%</span>
+                        </div>
+                        <div class="h-1.5 bg-[#0a0f0d] rounded-full overflow-hidden">
+                            <div id="drawerTechBar" class="h-full bg-emerald-500 emerald-glow" style="width: 92%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-[#bbcabf]">Soft Skills (Kỹ năng mềm)</span>
+                            <span id="drawerSoftScore" class="text-[10px] font-black text-emerald-400">88%</span>
+                        </div>
+                        <div class="h-1.5 bg-[#0a0f0d] rounded-full overflow-hidden">
+                            <div id="drawerSoftBar" class="h-full bg-emerald-500 emerald-glow" style="width: 88%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-[#bbcabf]" data-i18n="cultureFit">Culture Fit Score (Văn hóa)</span>
+                            <span id="drawerCultureScore" class="text-[10px] font-black text-emerald-400">95%</span>
+                        </div>
+                        <div class="h-1.5 bg-[#0a0f0d] rounded-full overflow-hidden">
+                            <div id="drawerCultureBar" class="h-full bg-emerald-500 emerald-glow" style="width: 95%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Core Values Progress -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-[#141a17] border border-[#242c27] p-3 rounded-xl text-center">
+                        <p class="text-[8px] text-[#94a3b8] font-bold uppercase tracking-wider">Integrity (Trung thực)</p>
+                        <p id="valIntegrity" class="text-sm font-black text-emerald-400 mt-1">95%</p>
+                    </div>
+                    <div class="bg-[#141a17] border border-[#242c27] p-3 rounded-xl text-center">
+                        <p class="text-[8px] text-[#94a3b8] font-bold uppercase tracking-wider">Discipline (Kỷ luật)</p>
+                        <p id="valDiscipline" class="text-sm font-black text-emerald-400 mt-1">92%</p>
+                    </div>
+                    <div class="bg-[#141a17] border border-[#242c27] p-3 rounded-xl text-center">
+                        <p class="text-[8px] text-[#94a3b8] font-bold uppercase tracking-wider">Innovation (Sáng tạo)</p>
+                        <p id="valInnovation" class="text-sm font-black text-emerald-400 mt-1">90%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Pillar 2: Screening Layer 2 - Technical Pre-Interview Tests -->
+            <div class="space-y-4">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 border-b border-[#242c27] pb-1.5 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-xs">quiz</span> PILLAR 2 (Tier 2): Pre-Interview Assessments
+                </h4>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-[#1c2420]/30 border border-[#242c27] p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold">IQ/Cognitive Score</p>
+                            <p id="testIQ" class="text-base font-black text-white mt-1">133 / 150</p>
+                        </div>
+                        <span class="material-symbols-outlined text-emerald-500/30 text-2xl">psychology_alt</span>
+                    </div>
+                    <div class="bg-[#1c2420]/30 border border-[#242c27] p-4 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold">Coding / Skill Test</p>
+                            <p id="testTech" class="text-base font-black text-white mt-1">91 / 100</p>
+                        </div>
+                        <span class="material-symbols-outlined text-emerald-500/30 text-2xl">code_blocks</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Pillar 2: Screening Layer 3 - AI Video Sentiment Interview (2026) -->
+            <div class="space-y-4">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 border-b border-[#242c27] pb-1.5 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-xs">videocam</span> PILLAR 2 (Tier 3): AI Video Sentiment Analytics
+                </h4>
+
+                <!-- Mock video preview window -->
+                <div class="relative rounded-2xl overflow-hidden border border-[#242c27] bg-[#141a17] aspect-video group cursor-pointer shadow-lg">
+                    <div class="absolute inset-0 bg-cover bg-center filter brightness-50 contrast-125 group-hover:scale-105 transition-transform" id="drawerVideoBg" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=640');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-transparent to-transparent"></div>
+                    <div class="absolute left-3 top-3 px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 text-[7px] font-black tracking-widest rounded flex items-center gap-1 uppercase">
+                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span> AI Sentiment Eng v4.0
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white/40 group-hover:text-emerald-400 group-hover:scale-110 text-5xl transition-all" style="font-variation-settings: 'FILL' 1">play_circle</span>
+                    </div>
+                    <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                        <p class="text-[8px] font-bold text-white/60">Voice Profile: EN-US / VI-VN Sync</p>
+                        <p class="text-[8px] font-black text-emerald-400 tracking-wider">SENTIMENT: EXCELLENT</p>
+                    </div>
+                </div>
+
+                <!-- Video sentiment indicators -->
+                <div class="grid grid-cols-3 gap-3 bg-[#1c2420]/30 border border-[#242c27] p-4 rounded-xl">
+                    <div class="text-center">
+                        <p class="text-[8px] text-[#94a3b8] font-bold uppercase tracking-wider">Charisma (Thần thái)</p>
+                        <p id="vidCharisma" class="text-xs font-black text-emerald-400 mt-1">94%</p>
+                    </div>
+                    <div class="text-center border-x border-[#3c4a42]/20">
+                        <p class="text-[8px] text-[#94a3b8] font-bold uppercase tracking-wider">Clarity (Mạch lạc)</p>
+                        <p id="vidClarity" class="text-xs font-black text-emerald-400 mt-1">93%</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[8px] text-[#94a3b8] font-bold uppercase tracking-wider">Tone Stability (Giọng)</p>
+                        <p id="vidTone" class="text-xs font-black text-emerald-400 mt-1">96%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. AI Detected Gaps -->
+            <div class="space-y-4">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 border-b border-[#242c27] pb-1.5 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-xs">warning</span> AI Gaps & Assessment Summary
+                </h4>
+                <div class="p-4 bg-[#1c2420] border border-[#242c27] rounded-xl space-y-2">
+                    <p class="text-[10.5px] text-[#bbcabf] leading-relaxed" id="drawerAiSummary">Expert in React and Node.js</p>
+                    <div class="pt-2 border-t border-[#3c4a42]/20 flex items-center gap-2">
+                        <span class="text-[9px] font-black text-red-400 uppercase">Gaps:</span>
+                        <span class="text-[9px] text-[#94a3b8]" id="drawerAiGaps">None</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Ask AI Oracle Action Panel -->
+            <div class="pt-4">
+                <button id="askOracleBtn" class="w-full py-4 bg-emerald-500 text-emerald-950 text-xs font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 emerald-glow">
+                    <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1">auto_awesome</span> Hỏi AI Oracle về ứng viên này
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Scripts -->
+    <script src="translations.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
