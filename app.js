@@ -2,7 +2,7 @@
 const CONFIG = {
     SUPABASE_URL: 'https://namwpwyjwzruaagwfoox.supabase.co',
     SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hbXdwd3lqd3pydWFhZ3dmb294Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMDE4MzMsImV4cCI6MjA3NTc3NzgzM30.2ySYAtueeFPvuUT6gZSSodhMKrNcwJwbNMyAFOH9ZeI',
-    GEMINI_API_KEY: 'AIzaSyAhX4XwlZdl2v3FRzkXwcXr1DbJCY0fXSw'
+    GEMINI_API_KEY: localStorage.getItem('user_gemini_api_key') || 'AIzaSyAhX4XwlZdl2v3FRzkXwcXr1DbJCY0fXSw'
 };
 
 // 🍞 Toast Notification (Global)
@@ -415,6 +415,7 @@ async function handleSendMessage() {
         }
     } catch (err) {
         console.error('Gemini Fetch Error:', err);
+        window.toggleAPISettingsModal(true);
         const loadingEl = document.getElementById(loadingId);
         if (loadingEl) {
             loadingEl.innerHTML = `
@@ -2454,7 +2455,8 @@ Format beautifully with neat spacing and paragraphs. Output strictly in JSON. Do
         window.showToast(state.currentLang === 'en' ? "AI Job Description generated successfully!" : "Đã tạo JD thông minh bằng AI thành công!");
     } catch (err) {
         console.error(err);
-        window.showToast(state.currentLang === 'en' ? "AI JD Generation failed. Please try again." : "Sinh JD bằng AI thất bại. Vui lòng thử lại.");
+        window.showToast(state.currentLang === 'en' ? "AI JD Generation failed. Please check your API key." : "Sinh JD bằng AI thất bại. Vui lòng cấu hình API Key hợp lệ.");
+        window.toggleAPISettingsModal(true);
     } finally {
         btnGenerate.disabled = false;
         btnGenerate.innerHTML = `<span class="material-symbols-outlined text-xs">auto_awesome</span> <span data-i18n="generateJDBtn">AI Generate JD</span>`;
@@ -2536,7 +2538,8 @@ JSON Schema format:
         window.showToast(state.currentLang === 'en' ? "AI Tailored Interview Questions generated!" : "Đã tạo câu hỏi phỏng vấn tối ưu hóa bằng AI!");
     } catch (err) {
         console.error(err);
-        window.showToast(state.currentLang === 'en' ? "Failed to generate AI questions." : "Tạo câu hỏi AI thất bại.");
+        window.showToast(state.currentLang === 'en' ? "Failed to generate AI questions. Please check your API key." : "Tạo câu hỏi AI thất bại. Vui lòng cấu hình API Key hợp lệ.");
+        window.toggleAPISettingsModal(true);
     } finally {
         btn.disabled = false;
         btn.innerHTML = `<span class="material-symbols-outlined text-xs">auto_awesome</span> <span data-i18n="interviewQBtn">AI Generate Questions</span>`;
@@ -2617,6 +2620,40 @@ window.queryKBDoc = function(docKey) {
     if (typeof handleSendMessage === 'function') {
         handleSendMessage();
     }
+};
+
+window.toggleAPISettingsModal = function(forceOpen = false) {
+    const modal = document.getElementById('apiSettingsModal');
+    const input = document.getElementById('inputUserAPIKey');
+    if (!modal) return;
+    
+    if (forceOpen || modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (input) {
+            input.value = localStorage.getItem('user_gemini_api_key') || '';
+        }
+    } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+
+window.saveUserAPIKey = function() {
+    const input = document.getElementById('inputUserAPIKey');
+    if (!input) return;
+    
+    const key = input.value.trim();
+    if (!key) {
+        window.showToast(state.currentLang === 'vi' ? "Vui lòng nhập Gemini API Key hợp lệ!" : "Please enter a valid Gemini API Key!");
+        return;
+    }
+    
+    localStorage.setItem('user_gemini_api_key', key);
+    CONFIG.GEMINI_API_KEY = key;
+    
+    window.showToast(state.currentLang === 'vi' ? "Đã lưu và áp dụng Gemini API Key mới!" : "New Gemini API Key saved and applied!");
+    window.toggleAPISettingsModal(false);
 };
 
 document.addEventListener('DOMContentLoaded', init);

@@ -158,7 +158,13 @@ const translations = {
         "knowledgeBaseSubtitle": "Các quy chuẩn chính sách tuyển dụng nội bộ phục vụ RAG cho AI Oracle.",
         "docGuidelines": "1. Hướng dẫn Tuyển dụng Tập đoàn",
         "docSSCProcedures": "2. Quy trình Tiếp nhận SSC",
-        "docGroupPolicy": "3. Chính sách Nhân sự Chung"
+        "docGroupPolicy": "3. Chính sách Nhân sự Chung",
+        "apiSettingsBtn": "Cấu hình API",
+        "apiSettingsTitle": "Cấu hình Google Gemini API",
+        "apiSettingsDesc": "Mã API mặc định của hệ thống đã bị Google vô hiệu hóa vì lý do bảo mật mã nguồn công khai. Vui lòng cấu hình API Key cá nhân của bạn để mở khóa các tính năng sinh JD và câu hỏi thông minh.",
+        "apiKeyLabel": "Mã khóa Gemini API (API Key)",
+        "cancelBtn": "Hủy bỏ",
+        "saveBtn": "Lưu & Áp dụng"
     },
     "en": {
         "appName": "HR-Tech 4.0",
@@ -319,7 +325,13 @@ const translations = {
         "knowledgeBaseSubtitle": "Corporate recruitment policies acting as RAG context for AI Oracle.",
         "docGuidelines": "1. Group Recruitment Guidelines",
         "docSSCProcedures": "2. SSC Onboarding Procedures",
-        "docGroupPolicy": "3. Corporate HR Policies"
+        "docGroupPolicy": "3. Corporate HR Policies",
+        "apiSettingsBtn": "API Key",
+        "apiSettingsTitle": "Google Gemini API Configuration",
+        "apiSettingsDesc": "The default corporate key was revoked by Google due to public repository security policies. Please configure your own Gemini API Key to activate the JD generator and interview helper.",
+        "apiKeyLabel": "Gemini API Key",
+        "cancelBtn": "Cancel",
+        "saveBtn": "Save & Apply"
     }
 };
 
