@@ -46,8 +46,22 @@ const translations = {
         "askAIPlaceholder": "Hỏi AI: 'So sánh kỹ năng kỹ thuật của ứng viên'...",
         "teamOnline": "Nhóm đang Online",
         "reviewingProfile": "Đang xem hồ sơ của...",
-        "dropzoneText": "Thả CV để phân tích",
-        "templatesDesc": "Chọn mẫu để test nhanh phân tích CV bằng AI và nạp ứng viên."
+        "templatesDesc": "Chọn mẫu để test nhanh phân tích CV bằng AI và nạp ứng viên.",
+        "jobArchitectTitle": "Kiến trúc Công việc & Chỉ số Năng lực",
+        "jobArchitectSubtitle": "Định nghĩa và quản lý khung năng lực, trọng số kỹ năng và chỉ thị chấm điểm bằng AI.",
+        "createJobBtn": "Tạo Hồ sơ Công việc Mới",
+        "department": "Phòng ban",
+        "targetLevel": "Cấp mục tiêu",
+        "lastUpdated": "Cập nhật cuối",
+        "editRules": "Sửa Quy tắc",
+        "analyzeGapsBtn": "Phân tích Gaps",
+        "competencyArchitecture": "Kiến trúc Năng lực & Quy tắc AI",
+        "technicalPillar": "Trụ cột 1: Năng lực Chuyên môn",
+        "assessmentPillar": "Trụ cột 2: Chỉ số Đánh giá & Điểm số",
+        "aiPromptsPillar": "Trụ cột 3: Chỉ thị nhắc AI (Prompt Directives)",
+        "promptSettingsLabel": "Chỉ thị nhắc AI Oracle để đánh giá vị trí này",
+        "saveChangesBtn": "Lưu cấu hình",
+        "restoreDefaultsBtn": "Khôi phục mặc định"
     },
     "en": {
         "appName": "HR-Tech 4.0",
@@ -95,9 +109,23 @@ const translations = {
         "aiCompare": "Based on your shortlist, Axhi has the strongest Security background, but Jamin has more recent experience with Cloud Native architectures.",
         "askAIPlaceholder": "Ask AI: 'Compare candidates' technical skills'...",
         "teamOnline": "Team Online",
-        "reviewingProfile": "Reviewing profile...",
         "dropzoneText": "Drop CV to Parse",
-        "templatesDesc": "Select templates to instantly test AI CV parsing and inject new profiles."
+        "templatesDesc": "Select templates to instantly test AI CV parsing and inject new profiles.",
+        "jobArchitectTitle": "Job Architect & Competency Center",
+        "jobArchitectSubtitle": "Define and manage competency profiles, skill frameworks, and AI scoring metrics.",
+        "createJobBtn": "Create New Job Profile",
+        "department": "Department",
+        "targetLevel": "Target Level",
+        "lastUpdated": "Last Updated",
+        "editRules": "Edit Rules",
+        "analyzeGapsBtn": "Analyze Gaps",
+        "competencyArchitecture": "Competency Architecture & AI Rules",
+        "technicalPillar": "Pillar 1: Technical & Engineering Mastery",
+        "assessmentPillar": "Pillar 2: Assessment Target Benchmarks",
+        "aiPromptsPillar": "Pillar 3: Custom AI Prompt & Target Directives",
+        "promptSettingsLabel": "AI Prompt directives for evaluating candidates in this role",
+        "saveChangesBtn": "Save Rules",
+        "restoreDefaultsBtn": "Restore Defaults"
     }
 };
 

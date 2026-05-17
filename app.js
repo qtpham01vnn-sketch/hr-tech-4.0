@@ -432,6 +432,9 @@ function init() {
             }
         });
     }
+    
+    // Initialize default competency profile
+    window.selectCompetencyProfile('java');
 }
 
 window.filterCandidates = function(layer) {
@@ -754,6 +757,190 @@ window.parseAndInjectCandidate = async function(sourceName) {
             closeParsingModal();
         }
     }, 3600);
+};
+
+// ==========================================
+// 🧩 Job Architect Competency Management
+// ==========================================
+
+const competencyProfiles = {
+    java: {
+        title: "Java Cloud Architect",
+        dept: "Engineering Dept",
+        level: "Senior (L4-L5)",
+        updated: "2026-05-16",
+        skill1Name: "Kubernetes Orchestration",
+        skill1Val: 90,
+        skill2Name: "AWS Architecture",
+        skill2Val: 85,
+        benchMCQ: "≥ 85%",
+        benchCoding: "≥ 80%",
+        benchCulture: "≥ 90%",
+        benchClarity: "≥ 80%",
+        prompt: "Evaluate deep cloud native competency. Specifically audit Kubernetes orchestrations, multi-tenant safety, cluster-autoscaling, and AWS IAM least privilege compliance.",
+        defaultPrompt: "Evaluate deep cloud native competency. Specifically audit Kubernetes orchestrations, multi-tenant safety, cluster-autoscaling, and AWS IAM least privilege compliance."
+    },
+    python: {
+        title: "Python AI Engineer",
+        dept: "AI R&D Hub",
+        level: "Expert (L5-L6)",
+        updated: "2026-05-17",
+        skill1Name: "PyTorch Deep Learning",
+        skill1Val: 95,
+        skill2Name: "Agentic RAG & LLMs",
+        skill2Val: 90,
+        benchMCQ: "≥ 90%",
+        benchCoding: "≥ 88%",
+        benchCulture: "≥ 85%",
+        benchClarity: "≥ 85%",
+        prompt: "Evaluate deep generative AI capability. Audit prompt injection mitigation, vector search optimizations, structured tool calling schemas, and context window token efficiency.",
+        defaultPrompt: "Evaluate deep generative AI capability. Audit prompt injection mitigation, vector search optimizations, structured tool calling schemas, and context window token efficiency."
+    },
+    pm: {
+        title: "Senior Product Manager",
+        dept: "Product Strategy",
+        level: "Lead (L4)",
+        updated: "2026-05-15",
+        skill1Name: "Product Strategy",
+        skill1Val: 90,
+        skill2Name: "User Research & Discovery",
+        skill2Val: 85,
+        benchMCQ: "≥ 80%",
+        benchCoding: "—",
+        benchCulture: "≥ 95%",
+        benchClarity: "≥ 90%",
+        prompt: "Evaluate user-centered product methodology, agile story mapping precision, product metrics definition, and customer validation loop structures.",
+        defaultPrompt: "Evaluate user-centered product methodology, agile story mapping precision, product metrics definition, and customer validation loop structures."
+    }
+};
+
+let activeCompetencyProfileKey = 'java';
+
+// Load persisted custom prompts from localStorage
+Object.keys(competencyProfiles).forEach(key => {
+    const savedPrompt = localStorage.getItem(`competency_prompt_${key}`);
+    if (savedPrompt) {
+        competencyProfiles[key].prompt = savedPrompt;
+    }
+});
+
+window.selectCompetencyProfile = function(key) {
+    if (!competencyProfiles[key]) return;
+    activeCompetencyProfileKey = key;
+    
+    // Update active visual card styles
+    document.querySelectorAll('.profile-card').forEach(card => {
+        card.className = "profile-card bg-[#141a17] border border-[#242c27] p-5 rounded-2xl cursor-pointer hover:bg-[#1c2420] transition-all";
+        // Remove pulse dot if exists
+        const dot = card.querySelector('.absolute');
+        if (dot) dot.remove();
+    });
+    
+    const selectedCard = document.getElementById(`profileCard-${key}`);
+    if (selectedCard) {
+        selectedCard.className = "profile-card bg-[#141a17] border-2 border-emerald-500 p-5 rounded-2xl cursor-pointer hover:bg-[#1c2420] transition-all relative overflow-hidden";
+        // Add green pulse dot to active card
+        const dot = document.createElement('div');
+        dot.className = "absolute right-3 top-3 w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#4edea3]";
+        selectedCard.appendChild(dot);
+    }
+    
+    // Load data into right details panel
+    const profile = competencyProfiles[key];
+    document.getElementById('activeProfileTitle').textContent = profile.title;
+    document.getElementById('activeProfileDept').textContent = profile.dept;
+    document.getElementById('activeProfileLevel').textContent = profile.level;
+    document.getElementById('activeProfileUpdated').textContent = profile.updated;
+    
+    document.getElementById('skill1-name').textContent = profile.skill1Name;
+    document.getElementById('skill1-val').textContent = `${profile.skill1Val}%`;
+    document.getElementById('skill1-bar').style.width = `${profile.skill1Val}%`;
+    
+    document.getElementById('skill2-name').textContent = profile.skill2Name;
+    document.getElementById('skill2-val').textContent = `${profile.skill2Val}%`;
+    document.getElementById('skill2-bar').style.width = `${profile.skill2Val}%`;
+    
+    document.getElementById('bench-mcq').textContent = profile.benchMCQ;
+    document.getElementById('bench-coding').textContent = profile.benchCoding;
+    document.getElementById('bench-culture').textContent = profile.benchCulture;
+    document.getElementById('bench-clarity').textContent = profile.benchClarity;
+    
+    document.getElementById('activePromptConfig').value = profile.prompt;
+};
+
+window.saveCompetencyRules = function() {
+    const key = activeCompetencyProfileKey;
+    if (!competencyProfiles[key]) return;
+    
+    const newPrompt = document.getElementById('activePromptConfig').value.trim();
+    competencyProfiles[key].prompt = newPrompt;
+    
+    // Update last updated date
+    const today = new Date().toISOString().split('T')[0];
+    competencyProfiles[key].updated = today;
+    document.getElementById('activeProfileUpdated').textContent = today;
+    
+    // Persist in localStorage
+    localStorage.setItem(`competency_prompt_${key}`, newPrompt);
+    
+    window.showToast(state.currentLang === 'en' ? "Competency rules and AI prompt saved!" : "Đã lưu quy tắc năng lực và chỉ thị nhắc AI!");
+};
+
+window.restoreCompetencyDefaults = function() {
+    const key = activeCompetencyProfileKey;
+    if (!competencyProfiles[key]) return;
+    
+    const profile = competencyProfiles[key];
+    profile.prompt = profile.defaultPrompt;
+    document.getElementById('activePromptConfig').value = profile.prompt;
+    
+    localStorage.removeItem(`competency_prompt_${key}`);
+    
+    window.showToast(state.currentLang === 'en' ? "Restored profile prompt defaults!" : "Đã khôi phục chỉ thị AI mặc định!");
+};
+
+window.switchView = function(viewName) {
+    const views = ['dashboard', 'jobArchitect', 'screener', 'planner', 'analytics'];
+    
+    // 1. Hide all view containers
+    views.forEach(v => {
+        const el = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+        if (el) el.classList.add('hidden');
+    });
+    
+    // 2. Show target view container
+    const targetEl = document.getElementById('view' + viewName.charAt(0).toUpperCase() + viewName.slice(1));
+    if (targetEl) targetEl.classList.remove('hidden');
+    
+    // 3. Reset all nav items active styles
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.className = "nav-item group flex items-center gap-3 px-4 py-3 text-[#bbcabf]/60 hover:text-[#4edea3] hover:bg-[#242c27]/50 rounded-xl transition-all cursor-pointer font-medium";
+        const icon = item.querySelector('.material-symbols-outlined');
+        if (icon) {
+            icon.className = "material-symbols-outlined";
+            icon.style.fontVariationSettings = "";
+            icon.style.color = "";
+        }
+        const text = item.querySelector('span:not(.material-symbols-outlined)');
+        if (text) text.className = "text-sm";
+    });
+    
+    // 4. Style selected nav item as active
+    const activeItem = document.getElementById('nav' + viewName.charAt(0).toUpperCase() + viewName.slice(1));
+    if (activeItem) {
+        activeItem.className = "nav-item group flex items-center gap-3 px-4 py-3 bg-emerald-500/10 border-l-2 border-emerald-500 rounded-r-xl transition-all cursor-pointer text-emerald-500 font-semibold";
+        const activeIcon = activeItem.querySelector('.material-symbols-outlined');
+        if (activeIcon) {
+            activeIcon.className = "material-symbols-outlined text-emerald-500";
+            activeIcon.style.fontVariationSettings = "'FILL' 1";
+        }
+    }
+    
+    // 5. Hide mobile sidebar if open
+    if (state.isSidebarOpen) {
+        window.toggleSidebar();
+    }
 };
 
 document.addEventListener('DOMContentLoaded', init);

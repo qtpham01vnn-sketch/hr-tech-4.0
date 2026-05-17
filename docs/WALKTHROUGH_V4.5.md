@@ -1,6 +1,6 @@
-# Hướng dẫn Vận hành & Tối ưu hóa - HR-Tech AI Recruitment Cockpit (v4.4)
+# Hướng dẫn Vận hành & Tối ưu hóa - HR-Tech AI Recruitment Cockpit (v4.5)
 
-Tài liệu này ghi nhận toàn bộ thành quả phát triển, cấu trúc vận hành, và các giải pháp tối ưu hóa hiệu năng đỉnh cao đã được triển khai trong phiên bản **HR-Tech v4.4**.
+Tài liệu này ghi nhận toàn bộ thành quả phát triển, cấu trúc vận hành, và các giải pháp tối ưu hóa hiệu năng đỉnh cao đã được triển khai trong phiên bản **HR-Tech v4.5**.
 
 ---
 
@@ -22,6 +22,17 @@ Tài liệu này ghi nhận toàn bộ thành quả phát triển, cấu trúc v
 
 ### 3. Tích hợp Đường ống AI Oracle (Unified AI Oracle Pipeline)
 * Nút **"Hỏi AI Oracle"** tự động đóng Drawer chi tiết, mở thanh AI chat bên phải, tự động viết sẵn prompt phân tích chuyên sâu về ứng viên đó và kích hoạt Gemini AI trả lời thời gian thực.
+
+### 4. Kiến trúc Công việc & Quy tắc Đánh giá AI (Job Architect & AI Competency Rules - Phase 4)
+* **Chuyển đổi SPA Tức thì (Instant SPA View Switcher)**: Thực hiện hệ thống chuyển đổi màn hình động trực tiếp trên giao diện gốc (Strategic Dashboard, Job Architect, AI Screener, Interview Planner, Talent Analytics) với cơ chế kích hoạt click nhanh nhạy, đồng bộ hóa phong cách icon & menu hoạt động tức thì.
+* **Danh sách Hồ sơ Khung năng lực (Competency Frameworks)**: Khởi tạo sẵn 3 khung năng lực mẫu chuẩn công nghiệp:
+  * **Java Cloud Architect** (Engineering Dept - Senior L4-L5)
+  * **Python AI Engineer** (AI R&D Hub - Expert L5-L6)
+  * **Senior Product Manager** (Product Strategy - Lead L4)
+* **Trụ cột 3 Chiều & Chỉ thị Nhắc AI (Three-Pillar Evaluation & AI Directives)**:
+  * **Trụ cột 1 (Technical Mastery)**: Đo lường tỷ trọng kỹ năng chi tiết với thanh đo đồ họa đẹp mắt (Kubernetes, AWS, PyTorch, RAG Systems).
+  * **Trụ cột 2 (Assessment Benchmarks)**: Đặt các ngưỡng mục tiêu trần của MCQ, Lập trình Hệ thống, Độ tương thích văn hóa, Thần thái video.
+  * **Trụ cột 3 (AI Prompt Directives)**: Khung văn bản soạn thảo linh hoạt chỉ thị nhắc AI chấm điểm ứng viên. Đồng bộ hóa bộ nhớ cục bộ `localStorage` giúp lưu trữ và khôi phục các chỉ thị nhắc tùy chỉnh của người dùng tức thì.
 
 ---
 
