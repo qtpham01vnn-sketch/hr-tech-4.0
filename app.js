@@ -25,7 +25,20 @@ const state = {
     isSidebarOpen: false,
     candidates: [],
     chatHistory: [],
-    analyticsFilter: 'all'
+    analyticsFilter: 'all',
+    tickets: [
+        { id: 'req-001', role: 'Java Cloud Architect', dept: 'Core Banking', priority: 'High', status: 'open', date: '2026-05-10', candidates: 0 },
+        { id: 'req-002', role: 'Python AI Engineer', dept: 'AI Lab', priority: 'Critical', status: 'progress', date: '2026-05-12', candidates: 2 },
+        { id: 'req-003', role: 'Senior Product Manager', dept: 'Digital Retail', priority: 'Medium', status: 'resolved', date: '2026-04-20', candidates: 1 }
+    ],
+    onboarding: [
+        { id: 'onb-001', name: 'Le Phuong Nam', role: 'Java Cloud Architect', email: 'nam.le@company.com', stage: 'docs', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80' },
+        { id: 'onb-002', name: 'Nguyen Minh Tu', role: 'Python AI Engineer', email: 'tu.nguyen@company.com', stage: 'contract', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80' },
+        { id: 'onb-003', name: 'Tran Thanh Thao', role: 'Senior Product Manager', email: 'thao.tran@company.com', stage: 'ssc', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80' }
+    ],
+    vettingWeights: { tech: 50, exp: 35, edu: 15 },
+    activeGeneratedJD: null,
+    activeGeneratedQuestions: null
 };
 
 // 🚀 Initialization
@@ -137,6 +150,19 @@ function updateLanguage() {
     }
     if (typeof window.renderAnalyticsView === 'function') {
         window.renderAnalyticsView();
+    }
+    if (typeof window.renderTicketHub === 'function') {
+        window.renderTicketHub();
+    }
+    if (typeof window.renderOnboarding === 'function') {
+        window.renderOnboarding();
+    }
+    if (state.activeGeneratedQuestions && typeof window.renderAIQuestions === 'function') {
+        window.renderAIQuestions();
+    }
+    const jdContainer = document.getElementById('jdOutputContainer');
+    if (jdContainer && state.activeGeneratedJD) {
+        jdContainer.textContent = state.currentLang === 'vi' ? state.activeGeneratedJD.jd_vi : state.activeGeneratedJD.jd_en;
     }
 }
 
@@ -1064,7 +1090,7 @@ window.restoreCompetencyDefaults = function() {
 };
 
 window.switchView = function(viewName) {
-    const views = ['dashboard', 'jobArchitect', 'screener', 'planner', 'analytics'];
+    const views = ['dashboard', 'ticketHub', 'jobArchitect', 'screener', 'planner', 'onboarding', 'analytics'];
     
     // 1. Hide all view containers
     views.forEach(v => {
@@ -1087,6 +1113,14 @@ window.switchView = function(viewName) {
     } else if (viewName === 'analytics') {
         if (typeof window.renderAnalyticsView === 'function') {
             window.renderAnalyticsView();
+        }
+    } else if (viewName === 'ticketHub') {
+        if (typeof window.renderTicketHub === 'function') {
+            window.renderTicketHub();
+        }
+    } else if (viewName === 'onboarding') {
+        if (typeof window.renderOnboarding === 'function') {
+            window.renderOnboarding();
         }
     }
     
@@ -1627,18 +1661,29 @@ window.switchPlannerTab = function(tabName) {
     window.plannerState.activeTab = tabName;
     const tabSched = document.getElementById('tabScheduleBtn');
     const tabScore = document.getElementById('tabScorecardBtn');
+    const tabAIQ = document.getElementById('tabAIQuestionsBtn');
     const paneSched = document.getElementById('paneSchedule');
     const paneScore = document.getElementById('paneScorecard');
+    const paneAIQ = document.getElementById('paneAIQuestions');
+
+    [tabSched, tabScore, tabAIQ].forEach(btn => {
+        if (btn) btn.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-transparent text-[#94a3b8] hover:text-white transition-all duration-300";
+    });
+    [paneSched, paneScore, paneAIQ].forEach(pane => {
+        if (pane) pane.classList.add('hidden');
+    });
 
     if (tabName === 'schedule') {
-        tabSched.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-emerald-500 text-emerald-400 transition-all duration-300";
-        tabScore.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-transparent text-[#94a3b8] hover:text-white transition-all duration-300";
+        if (tabSched) tabSched.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-emerald-500 text-emerald-400 transition-all duration-300";
         if (paneSched) paneSched.classList.remove('hidden');
-        if (paneScore) paneScore.classList.add('hidden');
+    } else if (tabName === 'aiquestions') {
+        if (tabAIQ) tabAIQ.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-emerald-500 text-emerald-400 transition-all duration-300";
+        if (paneAIQ) paneAIQ.classList.remove('hidden');
+        if (state.activeGeneratedQuestions) {
+            window.renderAIQuestions();
+        }
     } else {
-        tabSched.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-transparent text-[#94a3b8] hover:text-white transition-all duration-300";
-        tabScore.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-emerald-500 text-emerald-400 transition-all duration-300";
-        if (paneSched) paneSched.classList.add('hidden');
+        if (tabScore) tabScore.className = "flex-1 py-3 text-xs font-black uppercase tracking-widest text-center border-b-2 border-emerald-500 text-emerald-400 transition-all duration-300";
         if (paneScore) paneScore.classList.remove('hidden');
     }
 };
@@ -2225,5 +2270,353 @@ function generateAnalyticsInsights(candidates, conversionRatio) {
         </div>
     `;
 }
+
+// 🎯 Strategic Operations Handlers (NEW)
+window.renderTicketHub = function() {
+    const openCount = state.tickets.filter(t => t.status === 'open').length;
+    const progressCount = state.tickets.filter(t => t.status === 'progress').length;
+    const resolvedCount = state.tickets.filter(t => t.status === 'resolved').length;
+    
+    const countOpen = document.getElementById('countOpenTickets');
+    const countProgress = document.getElementById('countInProgressTickets');
+    const countResolved = document.getElementById('countResolvedTickets');
+    const kpiVal = document.getElementById('kpiOpenTicketsVal');
+
+    if (countOpen) countOpen.textContent = openCount;
+    if (countProgress) countProgress.textContent = progressCount;
+    if (countResolved) countResolved.textContent = resolvedCount;
+    if (kpiVal) kpiVal.textContent = openCount;
+    
+    const renderCard = (ticket) => `
+        <div class="p-4 bg-[#141a17]/80 border border-[#242c27] rounded-xl hover:border-emerald-500/30 transition-all flex flex-col space-y-3 relative group">
+            <div class="flex justify-between items-start">
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded ${ticket.priority === 'Critical' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : ticket.priority === 'High' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">${ticket.priority}</span>
+                <span class="text-[8px] text-[#94a3b8] font-bold font-mono">${ticket.id}</span>
+            </div>
+            <div>
+                <h4 class="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">${ticket.role}</h4>
+                <p class="text-[9px] text-[#94a3b8] font-bold mt-0.5">${ticket.dept}</p>
+            </div>
+            <div class="flex justify-between items-center text-[9px] font-bold pt-2 border-t border-[#242c27] text-[#94a3b8]">
+                <span>📅 ${ticket.date}</span>
+                <span class="text-emerald-400">${ticket.candidates} Sourced</span>
+            </div>
+            <div class="flex justify-end gap-1.5 pt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                ${ticket.status !== 'open' ? `<button onclick="moveTicket('${ticket.id}', 'prev')" class="p-1 bg-[#242c27] hover:bg-emerald-500/10 text-[#bbcabf] hover:text-emerald-400 rounded transition-all"><span class="material-symbols-outlined text-xs">arrow_back</span></button>` : ''}
+                ${ticket.status !== 'resolved' ? `<button onclick="moveTicket('${ticket.id}', 'next')" class="p-1 bg-[#242c27] hover:bg-emerald-500/10 text-[#bbcabf] hover:text-emerald-400 rounded transition-all"><span class="material-symbols-outlined text-xs">arrow_forward</span></button>` : ''}
+            </div>
+        </div>
+    `;
+    
+    const listOpen = document.getElementById('listOpenTickets');
+    const listProgress = document.getElementById('listInProgressTickets');
+    const listResolved = document.getElementById('listResolvedTickets');
+
+    if (listOpen) listOpen.innerHTML = state.tickets.filter(t => t.status === 'open').map(renderCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">No open requests</p>`;
+    if (listProgress) listProgress.innerHTML = state.tickets.filter(t => t.status === 'progress').map(renderCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">No requisitions in progress</p>`;
+    if (listResolved) listResolved.innerHTML = state.tickets.filter(t => t.status === 'resolved').map(renderCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">No resolved requisitions</p>`;
+};
+
+window.moveTicket = function(id, direction) {
+    const ticket = state.tickets.find(t => t.id === id);
+    if (!ticket) return;
+    const stages = ['open', 'progress', 'resolved'];
+    let idx = stages.indexOf(ticket.status);
+    if (direction === 'next' && idx < 2) idx++;
+    else if (direction === 'prev' && idx > 0) idx--;
+    ticket.status = stages[idx];
+    window.renderTicketHub();
+    window.showToast(state.currentLang === 'en' ? "Ticket status updated!" : "Đã cập nhật trạng thái yêu cầu tuyển dụng!");
+};
+
+window.addNewRequisition = function() {
+    const roles = ['Java Cloud Architect', 'Python AI Engineer', 'Senior Product Manager'];
+    const depts = ['Core Banking', 'AI Lab', 'Digital Retail'];
+    const priorities = ['Medium', 'High', 'Critical'];
+    
+    const newId = `req-00${state.tickets.length + 1}`;
+    const randomRole = roles[Math.floor(Math.random() * roles.length)];
+    const randomDept = depts[Math.floor(Math.random() * depts.length)];
+    const randomPriority = priorities[Math.floor(Math.random() * priorities.length)];
+    
+    state.tickets.push({
+        id: newId,
+        role: randomRole,
+        dept: randomDept,
+        priority: randomPriority,
+        status: 'open',
+        date: new Date().toISOString().split('T')[0],
+        candidates: 0
+    });
+    
+    window.renderTicketHub();
+    window.showToast(state.currentLang === 'en' ? "New requisition ticket created!" : "Đã tạo yêu cầu tuyển dụng mới!");
+};
+
+window.renderOnboarding = function() {
+    const total = state.onboarding.length;
+    const completed = state.onboarding.filter(o => o.stage === 'it').length;
+    const progressPercent = total ? Math.round((completed / total) * 100) : 0;
+    
+    const kpiOnb = document.getElementById('kpiOnboardingVal');
+    if (kpiOnb) kpiOnb.textContent = `${progressPercent}%`;
+    
+    const renderOnboardingCard = (member) => `
+        <div class="p-4 bg-[#141a17]/80 border border-[#242c27] rounded-xl hover:border-emerald-500/30 transition-all flex flex-col space-y-3 relative group">
+            <div class="flex items-center gap-3">
+                <img src="${member.avatar}" class="w-9 h-9 rounded-full border border-emerald-500/20 object-cover">
+                <div>
+                    <h4 class="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">${member.name}</h4>
+                    <p class="text-[9px] text-[#94a3b8] font-bold">${member.role}</p>
+                </div>
+            </div>
+            <p class="text-[8px] text-[#4e6b5a] font-mono">${member.email}</p>
+            <div class="flex justify-end gap-1.5 pt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                ${member.stage !== 'docs' ? `<button onclick="moveOnboarding('${member.id}', 'prev')" class="p-1 bg-[#242c27] hover:bg-emerald-500/10 text-[#bbcabf] hover:text-emerald-400 rounded transition-all"><span class="material-symbols-outlined text-xs">arrow_back</span></button>` : ''}
+                ${member.stage !== 'it' ? `<button onclick="moveOnboarding('${member.id}', 'next')" class="p-1 bg-[#242c27] hover:bg-emerald-500/10 text-[#bbcabf] hover:text-emerald-400 rounded transition-all"><span class="material-symbols-outlined text-xs">arrow_forward</span></button>` : ''}
+            </div>
+        </div>
+    `;
+    
+    const docs = document.getElementById('listOnboardingDocs');
+    const contract = document.getElementById('listOnboardingContract');
+    const ssc = document.getElementById('listOnboardingSSC');
+    const it = document.getElementById('listOnboardingIT');
+
+    if (docs) docs.innerHTML = state.onboarding.filter(o => o.stage === 'docs').map(renderOnboardingCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">None</p>`;
+    if (contract) contract.innerHTML = state.onboarding.filter(o => o.stage === 'contract').map(renderOnboardingCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">None</p>`;
+    if (ssc) ssc.innerHTML = state.onboarding.filter(o => o.stage === 'ssc').map(renderOnboardingCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">None</p>`;
+    if (it) it.innerHTML = state.onboarding.filter(o => o.stage === 'it').map(renderOnboardingCard).join('') || `<p class="text-center text-[10px] text-[#4e6b5a]/40 py-8">None</p>`;
+};
+
+window.moveOnboarding = function(id, direction) {
+    const member = state.onboarding.find(o => o.id === id);
+    if (!member) return;
+    const stages = ['docs', 'contract', 'ssc', 'it'];
+    let idx = stages.indexOf(member.stage);
+    if (direction === 'next' && idx < 3) idx++;
+    else if (direction === 'prev' && idx > 0) idx--;
+    member.stage = stages[idx];
+    window.renderOnboarding();
+    window.showToast(state.currentLang === 'en' ? "Onboarding stage updated!" : "Đã cập nhật tiến độ nhập việc!");
+};
+
+window.generateAIJD = async function() {
+    const jdContainer = document.getElementById('jdOutputContainer');
+    const btnGenerate = document.getElementById('btnGenerateJD');
+    const btnCopy = document.getElementById('btnCopyJD');
+    if (!jdContainer || !btnGenerate) return;
+    
+    const activeRole = state.activeCompetencyRole || 'Java Cloud Architect';
+    
+    btnGenerate.disabled = true;
+    btnGenerate.innerHTML = `<span class="material-symbols-outlined text-xs animate-spin">sync</span> <span data-i18n="generatingJD">Generating...</span>`;
+    
+    try {
+        const systemPrompt = `You are a Principal Technical Recruiter. Write a complete, comprehensive, highly professional Job Description (JD) for the role of ${activeRole}.
+You must write the JD in BOTH Vietnamese (jd_vi) and English (jd_en).
+Include standard sections:
+- About the Role
+- Core Responsibilities
+- Key Requirements (Technical & Soft Skills)
+- Benefits & Compensation
+Format beautifully with neat spacing and paragraphs. Output strictly in JSON. Do not include any HTML markdown wrappers in the JSON response.`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: systemPrompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            jd_vi: { type: "STRING" },
+                            jd_en: { type: "STRING" }
+                        },
+                        required: ["jd_vi", "jd_en"]
+                    }
+                }
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        
+        const result = JSON.parse(data.candidates[0].content.parts[0].text);
+        state.activeGeneratedJD = result;
+        
+        jdContainer.classList.remove('hidden');
+        if (btnCopy) btnCopy.classList.remove('hidden');
+        
+        jdContainer.textContent = state.currentLang === 'vi' ? result.jd_vi : result.jd_en;
+        window.showToast(state.currentLang === 'en' ? "AI Job Description generated successfully!" : "Đã tạo JD thông minh bằng AI thành công!");
+    } catch (err) {
+        console.error(err);
+        window.showToast(state.currentLang === 'en' ? "AI JD Generation failed. Please try again." : "Sinh JD bằng AI thất bại. Vui lòng thử lại.");
+    } finally {
+        btnGenerate.disabled = false;
+        btnGenerate.innerHTML = `<span class="material-symbols-outlined text-xs">auto_awesome</span> <span data-i18n="generateJDBtn">AI Generate JD</span>`;
+        updateLanguage();
+    }
+};
+
+window.copyGeneratedJD = function() {
+    const jdContainer = document.getElementById('jdOutputContainer');
+    if (!jdContainer || !jdContainer.textContent) return;
+    navigator.clipboard.writeText(jdContainer.textContent);
+    window.showToast(state.currentLang === 'en' ? "JD copied to clipboard!" : "Đã sao chép JD vào khay nhớ tạm!");
+};
+
+window.generateAIQuestions = async function() {
+    const btn = document.getElementById('btnGenerateQuestions');
+    const listContainer = document.getElementById('aiQuestionsList');
+    if (!btn || !listContainer) return;
+    
+    const candidateName = document.getElementById('plannerActiveName')?.textContent || 'Candidate';
+    const candidateRole = document.getElementById('plannerActiveRole')?.textContent || 'Specialist';
+    
+    btn.disabled = true;
+    btn.innerHTML = `<span class="material-symbols-outlined text-xs animate-spin">sync</span> <span data-i18n="generatingQuestions">Generating...</span>`;
+    
+    try {
+        const systemPrompt = `You are a Principal Tech Interviewer. Design a tailored set of 3 competency-based interview questions for ${candidateName} applying for the role of ${candidateRole}.
+Analyze potential technical stack gaps (e.g., Kubernetes orchestrations, cloud architecture, system design constraints) and formulate deep vetting questions.
+Provide your response in BOTH Vietnamese (vi) and English (en).
+JSON Schema format:
+{
+  "questions": [
+    {
+      "q_vi": "Câu hỏi bằng tiếng Việt",
+      "q_en": "Question in English",
+      "rationale_vi": "Lý do hỏi bằng tiếng Việt",
+      "rationale_en": "Rationale in English"
+    }
+  ]
+}`;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1alpha/models/gemini-3-flash-preview:generateContent?key=${CONFIG.GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: systemPrompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            questions: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        q_vi: { type: "STRING" },
+                                        q_en: { type: "STRING" },
+                                        rationale_vi: { type: "STRING" },
+                                        rationale_en: { type: "STRING" }
+                                    },
+                                    required: ["q_vi", "q_en", "rationale_vi", "rationale_en"]
+                                }
+                            }
+                        },
+                        required: ["questions"]
+                    }
+                }
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        
+        const result = JSON.parse(data.candidates[0].content.parts[0].text);
+        state.activeGeneratedQuestions = result.questions;
+        
+        window.renderAIQuestions();
+        window.showToast(state.currentLang === 'en' ? "AI Tailored Interview Questions generated!" : "Đã tạo câu hỏi phỏng vấn tối ưu hóa bằng AI!");
+    } catch (err) {
+        console.error(err);
+        window.showToast(state.currentLang === 'en' ? "Failed to generate AI questions." : "Tạo câu hỏi AI thất bại.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span class="material-symbols-outlined text-xs">auto_awesome</span> <span data-i18n="interviewQBtn">AI Generate Questions</span>`;
+        updateLanguage();
+    }
+};
+
+window.renderAIQuestions = function() {
+    const listContainer = document.getElementById('aiQuestionsList');
+    if (!listContainer || !state.activeGeneratedQuestions) return;
+    
+    listContainer.innerHTML = state.activeGeneratedQuestions.map((q, idx) => `
+        <div class="glass p-4 rounded-xl border border-[#242c27] space-y-2 relative overflow-hidden group">
+            <div class="absolute right-2 top-2 text-[8px] font-black text-emerald-400/20 uppercase tracking-widest">Q${idx + 1}</div>
+            <h4 class="text-xs font-black text-emerald-400 pr-8">${state.currentLang === 'vi' ? q.q_vi : q.q_en}</h4>
+            <p class="text-[9px] text-[#94a3b8] leading-relaxed italic"><strong class="text-white/60">Rationale:</strong> ${state.currentLang === 'vi' ? q.rationale_vi : q.rationale_en}</p>
+        </div>
+    `).join('');
+};
+
+window.onWeightSliderChange = function() {
+    const tech = parseInt(document.getElementById('sliderWeightTech').value) || 50;
+    const exp = parseInt(document.getElementById('sliderWeightExp').value) || 35;
+    const edu = parseInt(document.getElementById('sliderWeightEdu').value) || 15;
+    
+    const labelTech = document.getElementById('labelWeightTech');
+    const labelExp = document.getElementById('labelWeightExp');
+    const labelEdu = document.getElementById('labelWeightEdu');
+
+    if (labelTech) labelTech.textContent = `${tech}%`;
+    if (labelExp) labelExp.textContent = `${exp}%`;
+    if (labelEdu) labelEdu.textContent = `${edu}%`;
+    
+    state.candidates.forEach(c => {
+        if (!c.base_matching_score) {
+            c.base_matching_score = c.matching_score || 75;
+        }
+        const factor = (tech / 50) * 0.6 + (exp / 35) * 0.3 + (edu / 15) * 0.1;
+        let newScore = Math.round(c.base_matching_score * factor);
+        newScore = Math.min(100, Math.max(10, newScore));
+        c.matching_score = newScore;
+    });
+    
+    if (typeof window.renderScreenerView === 'function') {
+        window.renderScreenerView();
+    }
+    if (typeof window.renderActiveCandidatesDecks === 'function') {
+        window.renderActiveCandidatesDecks();
+    }
+};
+
+window.queryKBDoc = function(docKey) {
+    const chatInput = document.getElementById('chatInput');
+    if (!chatInput) return;
+    
+    if (!state.isChatOpen) {
+        const chatToggle = document.getElementById('chatToggle');
+        if (chatToggle) chatToggle.click();
+    }
+    
+    let docPrompt = '';
+    if (docKey === 'guidelines') {
+        docPrompt = state.currentLang === 'vi' 
+            ? "Hãy tóm tắt và phân tích Hướng dẫn Tuyển dụng Tập đoàn (Recruitment Guidelines) và cách áp dụng chuẩn khung năng lực 4 Trụ cột vào việc đánh giá ứng viên."
+            : "Please summarize and analyze the Group Recruitment Guidelines and how we apply the 4-Pillar Competency Framework to evaluate candidates.";
+    } else if (docKey === 'ssc') {
+        docPrompt = state.currentLang === 'vi'
+            ? "Vui lòng hướng dẫn Quy trình Nhập việc SSC (SSC Onboarding Procedures), các thủ tục làm hồ sơ, khám sức khỏe và cấp tài khoản cho nhân sự mới."
+            : "Please guide me through the SSC Onboarding Procedures, documentation, medical checks, and provisioning workflows for new hires.";
+    } else if (docKey === 'policy') {
+        docPrompt = state.currentLang === 'vi'
+            ? "Hãy làm rõ Chính sách Nhân sự Tập đoàn (Corporate HR Policies) về tính minh bạch, chống gia đình trị và tuân thủ bảo mật thông tin ứng viên GDPR."
+            : "Please clarify the Corporate HR Policies regarding transparency, anti-nepotism, and GDPR compliance for candidate data safety.";
+    }
+    
+    chatInput.value = docPrompt;
+    
+    if (typeof handleSendMessage === 'function') {
+        handleSendMessage();
+    }
+};
 
 document.addEventListener('DOMContentLoaded', init);
