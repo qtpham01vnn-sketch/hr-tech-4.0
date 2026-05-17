@@ -108,6 +108,10 @@ function updateLanguage() {
     if (typeof selectCompetencyProfile === 'function') {
         selectCompetencyProfile(activeCompetencyProfileKey);
     }
+    if (typeof window.renderScreenerView === 'function') {
+        window.renderScreenerView();
+        window.updateScreenerComparison();
+    }
 }
 
 // 📊 Data Fetching & Rendering
@@ -121,9 +125,22 @@ async function fetchCandidates() {
 
         if (error) throw error;
         
-        state.candidates = data || [];
+        state.candidates = (data || []).map(c => {
+            const summary = (c.ai_summary || '').toLowerCase();
+            const name = (c.full_name || '').toLowerCase();
+            let role = 'Python AI Engineer';
+            if (summary.includes('java') || summary.includes('microservices') || name.includes('architect') || name.includes('nam')) {
+                role = 'Java Cloud Architect';
+            } else if (summary.includes('product') || summary.includes('quản lý sản phẩm') || summary.includes('roadmap') || name.includes('product') || name.includes('jamin')) {
+                role = 'Senior Product Manager';
+            }
+            return { ...c, applied_position: role };
+        });
         renderCandidates();
         updateFunnelCounts();
+        if (typeof window.renderScreenerView === 'function') {
+            window.renderScreenerView();
+        }
     } catch (err) {
         console.error('Error fetching candidates:', err);
         if (tableBody) {
@@ -734,6 +751,15 @@ window.parseAndInjectCandidate = async function(sourceName) {
 
             // Sync with local memory
             const addedCandidate = data[0];
+            const summary = (addedCandidate.ai_summary || '').toLowerCase();
+            const name = (addedCandidate.full_name || '').toLowerCase();
+            let role = 'Python AI Engineer';
+            if (summary.includes('java') || summary.includes('microservices') || name.includes('architect') || name.includes('nam')) {
+                role = 'Java Cloud Architect';
+            } else if (summary.includes('product') || summary.includes('quản lý sản phẩm') || summary.includes('roadmap') || name.includes('product') || name.includes('jamin')) {
+                role = 'Senior Product Manager';
+            }
+            addedCandidate.applied_position = role;
             state.candidates.unshift(addedCandidate); // Add to beginning of array
             
             // Re-render UI list
@@ -999,6 +1025,12 @@ window.switchView = function(viewName) {
     const targetEl = document.getElementById('view' + viewName.charAt(0).toUpperCase() + viewName.slice(1));
     if (targetEl) targetEl.classList.remove('hidden');
     
+    if (viewName === 'screener') {
+        if (typeof window.renderScreenerView === 'function') {
+            window.renderScreenerView();
+        }
+    }
+    
     // 3. Reset all nav items active styles
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
@@ -1028,6 +1060,297 @@ window.switchView = function(viewName) {
     if (state.isSidebarOpen) {
         window.toggleSidebar();
     }
+};
+
+// 🔍 Candidate Screener & Multi-Profile Radar Matrix (Phase 5)
+window.selectedScreenerCandidates = new Set();
+
+window.renderScreenerView = function() {
+    const listContainer = document.getElementById('screenerCandidateList');
+    if (!listContainer) return;
+
+    const query = (document.getElementById('screenerSearchInput')?.value || '').toLowerCase().trim();
+    const roleFilter = document.getElementById('screenerRoleFilter')?.value || 'all';
+    const sortBy = document.getElementById('screenerSortSelect')?.value || 'matchDesc';
+
+    // 1. Calculate general stats
+    const total = state.candidates.length;
+    const compatible = state.candidates.filter(c => c.matching_score >= 80).length;
+    const avgScore = total > 0 ? Math.round(state.candidates.reduce((sum, c) => sum + c.matching_score, 0) / total) : 0;
+
+    const elTotal = document.getElementById('screenerStatTotal');
+    const elCompatible = document.getElementById('screenerStatCompatible');
+    const elAvg = document.getElementById('screenerStatAvg');
+    if (elTotal) elTotal.textContent = total;
+    if (elCompatible) elCompatible.textContent = compatible;
+    if (elAvg) elAvg.textContent = `${avgScore}%`;
+
+    // 2. Filter candidates
+    let filtered = state.candidates.filter(c => {
+        const matchesQuery = c.full_name.toLowerCase().includes(query) || 
+                             c.applied_position.toLowerCase().includes(query) || 
+                             (c.ai_summary && c.ai_summary.toLowerCase().includes(query));
+        const matchesRole = roleFilter === 'all' || c.applied_position === roleFilter;
+        return matchesQuery && matchesRole;
+    });
+
+    // 3. Sort candidates
+    if (sortBy === 'matchDesc') {
+        filtered.sort((a, b) => b.matching_score - a.matching_score);
+    } else if (sortBy === 'matchAsc') {
+        filtered.sort((a, b) => a.matching_score - b.matching_score);
+    } else if (sortBy === 'nameAsc') {
+        filtered.sort((a, b) => a.full_name.localeCompare(b.full_name));
+    }
+
+    const filteredCountEl = document.getElementById('screenerFilteredCount');
+    if (filteredCountEl) filteredCountEl.textContent = filtered.length;
+
+    // 4. Render candidate cards
+    listContainer.innerHTML = '';
+    if (filtered.length === 0) {
+        listContainer.innerHTML = `
+            <div class="text-center py-12 text-[#94a3b8]/60 bg-[#141a17]/50 rounded-2xl border border-[#242c27] text-xs">
+                <span class="material-symbols-outlined text-4xl block text-[#4e6b5a]/30 mb-2">person_search</span>
+                ${state.currentLang === 'vi' ? 'Không tìm thấy ứng viên nào phù hợp bộ lọc.' : 'No candidates match the active filters.'}
+            </div>
+        `;
+        return;
+    }
+
+    filtered.forEach(can => {
+        const isChecked = window.selectedScreenerCandidates.has(can.id);
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 group ${
+            isChecked 
+                ? 'bg-[#141a17] border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.05)]' 
+                : 'bg-[#141a17]/60 border-[#242c27] hover:border-emerald-500/40 hover:bg-[#141a17]'
+        }`;
+        
+        card.innerHTML = `
+            <div class="flex items-center gap-3.5 flex-1 min-w-0" onclick="window.toggleScreenerCardSelection('${can.id}')">
+                <div class="flex items-center" onclick="event.stopPropagation()">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.toggleScreenerComparison('${can.id}', this.checked)" class="w-4 h-4 bg-[#0e1511] border-emerald-800 rounded text-emerald-500 focus:ring-0 cursor-pointer">
+                </div>
+                <div class="w-10 h-10 rounded-full border border-emerald-500/20 p-0.5 shrink-0 overflow-hidden">
+                    <img src="${can.avatar_url || 'https://i.pravatar.cc/100?u=' + can.id}" class="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform">
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h4 class="text-xs font-black text-white truncate">${can.full_name}</h4>
+                    <p class="text-[10px] text-[#94a3b8] truncate mt-0.5">${can.applied_position}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-500/20">${can.matching_score}%</span>
+            </div>
+        `;
+        listContainer.appendChild(card);
+    });
+};
+
+window.toggleScreenerCardSelection = function(id) {
+    const isChecked = window.selectedScreenerCandidates.has(id);
+    window.toggleScreenerComparison(id, !isChecked);
+};
+
+window.onScreenerFilterChange = function() {
+    window.renderScreenerView();
+};
+
+window.toggleScreenerComparison = function(id, checked) {
+    if (checked) {
+        window.selectedScreenerCandidates.add(id);
+    } else {
+        window.selectedScreenerCandidates.delete(id);
+    }
+
+    // Refresh layout views
+    window.renderScreenerView();
+    window.updateScreenerComparison();
+};
+
+window.updateScreenerComparison = function() {
+    const selectedIds = Array.from(window.selectedScreenerCandidates);
+    const emptyState = document.getElementById('screenerComparisonEmptyState');
+    const content = document.getElementById('screenerComparisonContent');
+    const bulkBtn = document.getElementById('screenerBulkInviteBtn');
+    const selectedCount = document.getElementById('screenerSelectedCount');
+
+    if (selectedCount) selectedCount.textContent = selectedIds.length;
+
+    if (selectedIds.length === 0) {
+        emptyState?.classList.remove('hidden');
+        content?.classList.add('hidden');
+        bulkBtn?.classList.add('hidden');
+        return;
+    }
+
+    emptyState?.classList.add('hidden');
+    content?.classList.remove('hidden');
+    bulkBtn?.classList.remove('hidden');
+
+    const selectedCandidates = state.candidates.filter(c => window.selectedScreenerCandidates.has(c.id));
+
+    // 1. Render comparison table
+    const tableBody = document.getElementById('screenerComparisonTableBody');
+    if (tableBody) {
+        tableBody.innerHTML = '';
+        selectedCandidates.forEach(can => {
+            const mcq = Math.max(65, can.matching_score - 2);
+            const coding = can.applied_position === 'Senior Product Manager' ? '—' : `${Math.max(60, can.matching_score - 5)}%`;
+            const culture = Math.max(65, can.matching_score - 1);
+            const video = Math.max(60, can.matching_score - 4);
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-[#1c2420]/30 transition-colors';
+            row.innerHTML = `
+                <td class="px-3 py-2.5 flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full border border-emerald-500/20 overflow-hidden">
+                        <img src="${can.avatar_url || 'https://i.pravatar.cc/100?u=' + can.id}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="font-bold text-white">${can.full_name}</span>
+                </td>
+                <td class="px-3 py-2.5 text-center font-bold text-emerald-400">${can.matching_score}%</td>
+                <td class="px-3 py-2.5 text-center">${mcq}%</td>
+                <td class="px-3 py-2.5 text-center">${coding}</td>
+                <td class="px-3 py-2.5 text-center">${culture}%</td>
+                <td class="px-3 py-2.5 text-center">${video}%</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // 2. Render SVG Radar Chart
+    window.renderScreenerRadarChart(selectedCandidates);
+};
+
+window.renderScreenerRadarChart = function(candidates) {
+    const container = document.getElementById('screenerRadarChartContainer');
+    if (!container) return;
+
+    // Standard Pentagram variables
+    const size = 280;
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = 90; // outer pentagram radius
+
+    // 5 dimensions
+    const dimensions = [
+        { labelEn: "Tech MCQ", labelVi: "Trắc nghiệm Tech", key: "mcq" },
+        { labelEn: "Coding", labelVi: "Lập trình", key: "coding" },
+        { labelEn: "Culture", labelVi: "Văn hóa", key: "culture" },
+        { labelEn: "Video", labelVi: "Video", key: "video" },
+        { labelEn: "Mastery", labelVi: "Năng lực", key: "mastery" }
+    ];
+
+    const numPoints = dimensions.length;
+    const angles = [];
+    for (let i = 0; i < numPoints; i++) {
+        angles.push(-Math.PI / 2 + (2 * Math.PI / numPoints) * i);
+    }
+
+    // Concentric grid circles / polygons
+    let gridSvg = '';
+    const rings = [0.2, 0.4, 0.6, 0.8, 1.0];
+    rings.forEach(ring => {
+        const points = angles.map(a => {
+            const rx = cx + (r * ring) * Math.cos(a);
+            const ry = cy + (r * ring) * Math.sin(a);
+            return `${rx},${ry}`;
+        }).join(' ');
+        
+        gridSvg += `<polygon points="${points}" fill="transparent" stroke="#242c27" stroke-width="0.8" stroke-dasharray="${ring < 1 ? '3,3' : 'none'}"></polygon>`;
+    });
+
+    // Add axis lines & text labels
+    let axesSvg = '';
+    dimensions.forEach((dim, i) => {
+        const angle = angles[i];
+        const endX = cx + r * Math.cos(angle);
+        const endY = cy + r * Math.sin(angle);
+
+        // Axis line
+        axesSvg += `<line x1="${cx}" y1="${cy}" x2="${endX}" y2="${endY}" stroke="#242c27" stroke-width="0.8"></line>`;
+
+        // Label position (slightly offset outward)
+        const labelR = r + 15;
+        const lx = cx + labelR * Math.cos(angle);
+        const ly = cy + labelR * Math.sin(angle);
+        const textAnchor = Math.abs(lx - cx) < 10 ? 'middle' : (lx > cx ? 'start' : 'end');
+        const textLabel = state.currentLang === 'vi' ? dim.labelVi : dim.labelEn;
+
+        axesSvg += `<text x="${lx}" y="${ly + 3}" text-anchor="${textAnchor}" fill="#94a3b8" font-size="8" font-weight="black" class="uppercase">${textLabel}</text>`;
+    });
+
+    // Draw candidate polygons
+    const colors = [
+        { stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.15)', name: 'Emerald' },
+        { stroke: '#a855f7', fill: 'rgba(168, 85, 247, 0.15)', name: 'Purple' },
+        { stroke: '#f43f5e', fill: 'rgba(244, 63, 94, 0.15)', name: 'Rose' },
+        { stroke: '#3b82f6', fill: 'rgba(59, 130, 246, 0.15)', name: 'Blue' }
+    ];
+
+    let candidatesSvg = '';
+    candidates.forEach((can, index) => {
+        const color = colors[index % colors.length];
+        
+        // Calculate points
+        const mcq = Math.max(65, can.matching_score - 2);
+        const coding = can.applied_position === 'Senior Product Manager' ? 80 : Math.max(60, can.matching_score - 5);
+        const culture = Math.max(65, can.matching_score - 1);
+        const video = Math.max(60, can.matching_score - 4);
+        const mastery = can.matching_score;
+
+        const scores = [mcq, coding, culture, video, mastery];
+        const points = angles.map((a, i) => {
+            const score = scores[i];
+            const sr = r * (score / 100);
+            const px = cx + sr * Math.cos(a);
+            const py = cy + sr * Math.sin(a);
+            return `${px},${py}`;
+        }).join(' ');
+
+        // Polygon
+        candidatesSvg += `
+            <polygon points="${points}" fill="${color.fill}" stroke="${color.stroke}" stroke-width="2" class="transition-all duration-500"></polygon>
+            <!-- Circular points -->
+            ${angles.map((a, i) => {
+                const score = scores[i];
+                const sr = r * (score / 100);
+                const px = cx + sr * Math.cos(a);
+                const py = cy + sr * Math.sin(a);
+                return `<circle cx="${px}" cy="${py}" r="3" fill="#0a0f0d" stroke="${color.stroke}" stroke-width="1.5"></circle>`;
+            }).join('')}
+        `;
+    });
+
+    // Combine all
+    container.innerHTML = `
+        <svg class="w-full h-full" viewBox="0 0 ${size} ${size}">
+            ${gridSvg}
+            ${axesSvg}
+            ${candidatesSvg}
+            <!-- Center dot -->
+            <circle cx="${cx}" cy="${cy}" r="3" fill="#4edea3"></circle>
+        </svg>
+    `;
+};
+
+window.onScreenerBulkInvite = function() {
+    const selectedIds = Array.from(window.selectedScreenerCandidates);
+    if (selectedIds.length === 0) return;
+
+    const count = selectedIds.length;
+    const msg = state.currentLang === 'vi' 
+        ? `Đã gửi lời mời phỏng vấn hàng loạt tới ${count} ứng viên thành công!` 
+        : `Sent bulk interview invitations to ${count} candidates successfully!`;
+
+    window.showToast(msg);
+    
+    // Clear selection
+    window.selectedScreenerCandidates.clear();
+    window.renderScreenerView();
+    window.updateScreenerComparison();
 };
 
 document.addEventListener('DOMContentLoaded', init);

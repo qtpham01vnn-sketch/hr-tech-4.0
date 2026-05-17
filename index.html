@@ -581,16 +581,122 @@
 
         <!-- Candidate AI Screener View -->
         <div id="viewScreener" class="p-4 lg:p-10 space-y-6 lg:space-y-8 animate-fade-in hidden">
-            <div class="border-b border-[#242c27] pb-6">
-                <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="screener">Candidate AI Screener</h2>
-                <p class="text-xs text-[#94a3b8]">Run deep semantic search, analyze cognitive traits, and compare candidate skills on interactive matrices.</p>
+            <!-- Header section -->
+            <div class="border-b border-[#242c27] pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="screenerHeader">Candidate AI Screener</h2>
+                    <p class="text-xs text-[#94a3b8]" data-i18n="screenerSubtitle">Run deep semantic search, analyze cognitive traits, and compare candidate skills on interactive matrices.</p>
+                </div>
+                <!-- Mini Stats Widget -->
+                <div class="flex items-center gap-4 bg-[#141a17] border border-[#242c27] px-4 py-2.5 rounded-2xl shadow-lg">
+                    <div class="text-center border-r border-[#242c27] pr-4">
+                        <p class="text-[9px] text-[#94a3b8] uppercase font-bold" data-i18n="totalScreened">Total Screened</p>
+                        <p id="screenerStatTotal" class="text-xs font-black text-emerald-400 mt-0.5">0</p>
+                    </div>
+                    <div class="text-center border-r border-[#242c27] pr-4">
+                        <p class="text-[9px] text-[#94a3b8] uppercase font-bold" data-i18n="highlyCompatible">Compatible (≥80%)</p>
+                        <p id="screenerStatCompatible" class="text-xs font-black text-emerald-400 mt-0.5">0</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[9px] text-[#94a3b8] uppercase font-bold" data-i18n="avgMatching">Avg Match Score</p>
+                        <p id="screenerStatAvg" class="text-xs font-black text-emerald-400 mt-0.5">0%</p>
+                    </div>
+                </div>
             </div>
             
-            <div class="bg-[#141a17] border border-[#242c27] rounded-3xl p-10 text-center space-y-4">
-                <span class="material-symbols-outlined text-6xl text-emerald-500/20 animate-pulse">psychology</span>
-                <h3 class="text-lg font-black text-white">Compare Candidates & Skill Matrix</h3>
-                <p class="text-xs text-[#94a3b8] max-w-md mx-auto">This functional view represents the next phase of the Recruitment OS roadmap. Here, hiring boards will be able to perform detailed multi-profile matching and overlay skillset metrics on visual radar charts.</p>
-                <div class="inline-block px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase rounded-lg border border-emerald-500/20">Phase 3 Milestone</div>
+            <!-- Filters row -->
+            <div class="flex flex-col sm:flex-row gap-4 items-center">
+                <!-- Search bar -->
+                <div class="w-full sm:flex-1 relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500/50 text-base">search</span>
+                    <input type="text" id="screenerSearchInput" oninput="onScreenerFilterChange()" data-i18n-placeholder="screenerSearchPlaceholder" placeholder="Search by candidate name or key skills..." class="w-full bg-[#141a17] border border-[#242c27] rounded-xl pl-10 pr-4 py-2.5 text-xs text-[#bbcabf] placeholder-[#4e6b5a]/40 focus:outline-none focus:border-emerald-500/50 transition-all">
+                </div>
+                <!-- Role Filter -->
+                <div class="w-full sm:w-48">
+                    <select id="screenerRoleFilter" onchange="onScreenerFilterChange()" class="w-full bg-[#141a17] border border-[#242c27] rounded-xl px-3 py-2.5 text-xs text-[#bbcabf] focus:outline-none focus:border-emerald-500/50 transition-all cursor-pointer">
+                        <option value="all" data-i18n="filterAllRoles">All Applied Roles</option>
+                        <option value="Java Cloud Architect">Java Cloud Architect</option>
+                        <option value="Python AI Engineer">Python AI Engineer</option>
+                        <option value="Senior Product Manager">Senior Product Manager</option>
+                    </select>
+                </div>
+                <!-- Sort options -->
+                <div class="w-full sm:w-48">
+                    <select id="screenerSortSelect" onchange="onScreenerFilterChange()" class="w-full bg-[#141a17] border border-[#242c27] rounded-xl px-3 py-2.5 text-xs text-[#bbcabf] focus:outline-none focus:border-emerald-500/50 transition-all cursor-pointer">
+                        <option value="matchDesc" data-i18n="sortMatchDesc">Match: High to Low</option>
+                        <option value="matchAsc" data-i18n="sortMatchAsc">Match: Low to High</option>
+                        <option value="nameAsc" data-i18n="sortNameAsc">Name: A to Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Two Column Layout: Left List, Right Matrix/Radar -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 items-start">
+                <!-- Left: Candidate List Column -->
+                <div class="xl:col-span-5 space-y-4">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-[#94a3b8] flex justify-between items-center">
+                        <span data-i18n="candidatesListTitle">Screened Candidates</span>
+                        <span id="screenerFilteredCount" class="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">0</span>
+                    </h3>
+                    <div id="screenerCandidateList" class="space-y-3.5 max-h-[600px] overflow-y-auto pr-1.5 custom-scrollbar">
+                        <!-- Rendered Dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right: Comparison Dashboard Column -->
+                <div class="xl:col-span-7 bg-[#141a17] border border-[#242c27] rounded-3xl p-6 lg:p-8 space-y-6 min-h-[500px] relative overflow-hidden flex flex-col">
+                    <!-- Header with bulk actions -->
+                    <div class="flex items-center justify-between border-b border-[#242c27] pb-4">
+                        <div>
+                            <h3 class="text-sm font-black text-white" data-i18n="comparisonMatrixTitle">Candidate Comparison Radar</h3>
+                            <p class="text-[10px] text-[#94a3b8] mt-0.5" data-i18n="comparisonMatrixSubtitle">Overlay multiple candidates side-by-side to compare skill points.</p>
+                        </div>
+                        <button id="screenerBulkInviteBtn" onclick="onScreenerBulkInvite()" class="px-4 py-2 bg-emerald-500 text-emerald-950 font-black text-[9px] uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] hidden">
+                            <span data-i18n="bulkInviteLabel">Bulk Invite</span> (<span id="screenerSelectedCount">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- Comparison Empty State -->
+                    <div id="screenerComparisonEmptyState" class="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-4">
+                        <div class="w-16 h-16 rounded-3xl bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+                            <span class="material-symbols-outlined text-3xl text-emerald-500/40">compare_arrows</span>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black text-[#bbcabf]" data-i18n="compareEmptyTitle">Compare candidates side-by-side</h4>
+                            <p class="text-[10px] text-[#94a3b8] max-w-xs mx-auto mt-1" data-i18n="compareEmptyDesc">Select one or more candidates by checking their cards on the left list to generate an overlay comparison radar chart.</p>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Content View -->
+                    <div id="screenerComparisonContent" class="hidden flex-1 flex flex-col space-y-6">
+                        <!-- Radar Chart Area -->
+                        <div class="flex justify-center items-center py-4 bg-[#0a0f0d]/50 rounded-2xl border border-[#242c27] relative">
+                            <!-- Dynamic SVG Radar Chart -->
+                            <div id="screenerRadarChartContainer" class="w-[280px] h-[280px]">
+                                <!-- Drawn dynamically in JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Side-by-Side Comparison Table -->
+                        <div class="overflow-x-auto rounded-xl border border-[#242c27]">
+                            <table class="w-full text-left border-collapse text-[10px]">
+                                <thead>
+                                    <tr class="bg-[#0a0f0d] border-b border-[#242c27] text-[#94a3b8] uppercase font-bold tracking-wider">
+                                        <th class="px-3 py-2.5" data-i18n="colCandidateName">Candidate</th>
+                                        <th class="px-3 py-2.5 text-center" data-i18n="colMatchScore">Match</th>
+                                        <th class="px-3 py-2.5 text-center" data-i18n="benchTechMCQ">Tech MCQ</th>
+                                        <th class="px-3 py-2.5 text-center" data-i18n="benchSystemCoding">Coding</th>
+                                        <th class="px-3 py-2.5 text-center" data-i18n="benchCultureFit">Culture</th>
+                                        <th class="px-3 py-2.5 text-center" data-i18n="benchVideoClarity">Video</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="screenerComparisonTableBody" class="divide-y divide-[#242c27] text-[#bbcabf]">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

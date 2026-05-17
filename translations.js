@@ -68,7 +68,25 @@ const translations = {
         "benchTechMCQ": "Trắc nghiệm Tech",
         "benchSystemCoding": "Lập trình Hệ thống",
         "benchCultureFit": "Phù hợp Văn hóa",
-        "benchVideoClarity": "Thần thái Video"
+        "benchVideoClarity": "Thần thái Video",
+        "screenerHeader": "Sàng lọc Ứng viên AI",
+        "screenerSubtitle": "Tìm kiếm ngữ nghĩa, so sánh đa chiều và trực quan hóa năng lực trên biểu đồ Radar động.",
+        "totalScreened": "Tổng số Sàng lọc",
+        "highlyCompatible": "Đạt Chuẩn (≥80%)",
+        "avgMatching": "Khớp TB",
+        "screenerSearchPlaceholder": "Tìm kiếm theo tên ứng viên hoặc kỹ năng cốt lõi...",
+        "filterAllRoles": "Tất cả vị trí ứng tuyển",
+        "sortMatchDesc": "Khớp: Cao đến Thấp",
+        "sortMatchAsc": "Khớp: Thấp đến Cao",
+        "sortNameAsc": "Họ tên: A đến Z",
+        "candidatesListTitle": "Danh sách Ứng viên Sàng lọc",
+        "comparisonMatrixTitle": "Biểu đồ Đối sánh Năng lực Radar",
+        "comparisonMatrixSubtitle": "Đè hai hoặc nhiều ứng viên cạnh nhau để so sánh điểm số kỹ năng.",
+        "bulkInviteLabel": "Mời Phỏng vấn Hàng loạt",
+        "compareEmptyTitle": "So sánh đối sánh ứng viên",
+        "compareEmptyDesc": "Chọn một hoặc nhiều ứng viên bằng cách tích vào ô trên thẻ bên trái để vẽ biểu đồ mạng nhện đối chiếu năng lực.",
+        "colCandidateName": "Ứng viên",
+        "colMatchScore": "Điểm Khớp"
     },
     "en": {
         "appName": "HR-Tech 4.0",
@@ -139,7 +157,25 @@ const translations = {
         "benchTechMCQ": "Tech MCQ",
         "benchSystemCoding": "System Coding",
         "benchCultureFit": "Culture Fit",
-        "benchVideoClarity": "Video Clarity"
+        "benchVideoClarity": "Video Clarity",
+        "screenerHeader": "Candidate AI Screener",
+        "screenerSubtitle": "Run deep semantic search, analyze cognitive traits, and compare candidate skills on interactive matrices.",
+        "totalScreened": "Total Screened",
+        "highlyCompatible": "Compatible (≥80%)",
+        "avgMatching": "Avg Match Score",
+        "screenerSearchPlaceholder": "Search by candidate name or key skills...",
+        "filterAllRoles": "All Applied Roles",
+        "sortMatchDesc": "Match: High to Low",
+        "sortMatchAsc": "Match: Low to High",
+        "sortNameAsc": "Name: A to Z",
+        "candidatesListTitle": "Screened Candidates",
+        "comparisonMatrixTitle": "Candidate Comparison Radar",
+        "comparisonMatrixSubtitle": "Overlay multiple candidates side-by-side to compare skill points.",
+        "bulkInviteLabel": "Bulk Invite",
+        "compareEmptyTitle": "Compare candidates side-by-side",
+        "compareEmptyDesc": "Select one or more candidates by checking their cards on the left list to generate an overlay comparison radar chart.",
+        "colCandidateName": "Candidate",
+        "colMatchScore": "Match"
     }
 };
 
