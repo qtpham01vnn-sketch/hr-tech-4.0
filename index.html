@@ -457,7 +457,7 @@
                     <h2 class="text-xl lg:text-2xl font-black text-emerald-400" data-i18n="jobArchitectTitle">Job Architect & Competency Center</h2>
                     <p class="text-xs text-[#94a3b8]" data-i18n="jobArchitectSubtitle">Define and manage competency profiles, skill frameworks, and AI scoring metrics.</p>
                 </div>
-                <button onclick="showToast('Create Profile: Coming Soon!')" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-[#0a0f0d] font-black text-xs rounded-xl shadow-[0_0_20px_rgba(78,222,163,0.3)] transition-all flex items-center gap-2" data-i18n="createJobBtn">
+                <button onclick="window.showToast(translations[state.currentLang]['comingSoon'] || 'Coming Soon!')" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-[#0a0f0d] font-black text-xs rounded-xl shadow-[0_0_20px_rgba(78,222,163,0.3)] transition-all flex items-center gap-2" data-i18n="createJobBtn">
                     <span class="material-symbols-outlined text-sm font-black">add</span>
                     Create New Job Profile
                 </button>

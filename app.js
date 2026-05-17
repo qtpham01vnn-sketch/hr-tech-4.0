@@ -100,6 +100,14 @@ function updateLanguage() {
 
     localStorage.setItem('talentOS_lang', state.currentLang);
     document.documentElement.lang = state.currentLang;
+
+    // 🧩 Update competency dynamically if initialized
+    if (typeof renderCompetencyCards === 'function') {
+        renderCompetencyCards();
+    }
+    if (typeof selectCompetencyProfile === 'function') {
+        selectCompetencyProfile(activeCompetencyProfileKey);
+    }
 }
 
 // 📊 Data Fetching & Rendering
@@ -434,6 +442,9 @@ function init() {
     }
     
     // Initialize default competency profile
+    if (typeof window.renderCompetencyCards === 'function') {
+        window.renderCompetencyCards();
+    }
     window.selectCompetencyProfile('java');
 }
 
@@ -765,52 +776,85 @@ window.parseAndInjectCandidate = async function(sourceName) {
 
 const competencyProfiles = {
     java: {
-        title: "Java Cloud Architect",
-        dept: "Engineering Dept",
-        level: "Senior (L4-L5)",
-        updated: "2026-05-16",
-        skill1Name: "Kubernetes Orchestration",
+        vi: {
+            title: "Java Cloud Architect",
+            dept: "Bộ phận Kỹ thuật",
+            level: "Cấp Cao (L4-L5)",
+            skill1Name: "Điều phối Kubernetes",
+            skill2Name: "Kiến trúc Đám mây AWS",
+            prompt: "Đánh giá năng lực chuyên sâu về đám mây (cloud-native). Kiểm tra kỹ khả năng cấu hình Kubernetes, bảo mật đa người thuê, co giãn cụm tự động và tuân thủ đặc quyền tối thiểu AWS IAM.",
+            defaultPrompt: "Đánh giá năng lực chuyên sâu về đám mây (cloud-native). Kiểm tra kỹ khả năng cấu hình Kubernetes, bảo mật đa người thuê, co giãn cụm tự động và tuân thủ đặc quyền tối thiểu AWS IAM."
+        },
+        en: {
+            title: "Java Cloud Architect",
+            dept: "Engineering Dept",
+            level: "Senior (L4-L5)",
+            skill1Name: "Kubernetes Orchestration",
+            skill2Name: "AWS Architecture",
+            prompt: "Evaluate deep cloud native competency. Specifically audit Kubernetes orchestrations, multi-tenant safety, cluster-autoscaling, and AWS IAM least privilege compliance.",
+            defaultPrompt: "Evaluate deep cloud native competency. Specifically audit Kubernetes orchestrations, multi-tenant safety, cluster-autoscaling, and AWS IAM least privilege compliance."
+        },
         skill1Val: 90,
-        skill2Name: "AWS Architecture",
         skill2Val: 85,
         benchMCQ: "≥ 85%",
         benchCoding: "≥ 80%",
         benchCulture: "≥ 90%",
         benchClarity: "≥ 80%",
-        prompt: "Evaluate deep cloud native competency. Specifically audit Kubernetes orchestrations, multi-tenant safety, cluster-autoscaling, and AWS IAM least privilege compliance.",
-        defaultPrompt: "Evaluate deep cloud native competency. Specifically audit Kubernetes orchestrations, multi-tenant safety, cluster-autoscaling, and AWS IAM least privilege compliance."
+        updated: "2026-05-16"
     },
     python: {
-        title: "Python AI Engineer",
-        dept: "AI R&D Hub",
-        level: "Expert (L5-L6)",
-        updated: "2026-05-17",
-        skill1Name: "PyTorch Deep Learning",
+        vi: {
+            title: "Python AI Engineer",
+            dept: "Trung tâm R&D AI",
+            level: "Chuyên gia (L5-L6)",
+            skill1Name: "Học sâu PyTorch",
+            skill2Name: "Tác tử RAG & LLMs",
+            prompt: "Đánh giá năng lực trí tuệ nhân tạo tạo sinh chuyên sâu. Kiểm tra chống tấn công prompt injection, tối ưu hóa tìm kiếm vector, định nghĩa schema cho tool calling và tối ưu hóa sử dụng token.",
+            defaultPrompt: "Đánh giá năng lực trí tuệ nhân tạo tạo sinh chuyên sâu. Kiểm tra chống tấn công prompt injection, tối ưu hóa tìm kiếm vector, định nghĩa schema cho tool calling và tối ưu hóa sử dụng token."
+        },
+        en: {
+            title: "Python AI Engineer",
+            dept: "AI R&D Hub",
+            level: "Expert (L5-L6)",
+            skill1Name: "PyTorch Deep Learning",
+            skill2Name: "Agentic RAG & LLMs",
+            prompt: "Evaluate deep generative AI capability. Audit prompt injection mitigation, vector search optimizations, structured tool calling schemas, and context window token efficiency.",
+            defaultPrompt: "Evaluate deep generative AI capability. Audit prompt injection mitigation, vector search optimizations, structured tool calling schemas, and context window token efficiency."
+        },
         skill1Val: 95,
-        skill2Name: "Agentic RAG & LLMs",
         skill2Val: 90,
         benchMCQ: "≥ 90%",
         benchCoding: "≥ 88%",
         benchCulture: "≥ 85%",
         benchClarity: "≥ 85%",
-        prompt: "Evaluate deep generative AI capability. Audit prompt injection mitigation, vector search optimizations, structured tool calling schemas, and context window token efficiency.",
-        defaultPrompt: "Evaluate deep generative AI capability. Audit prompt injection mitigation, vector search optimizations, structured tool calling schemas, and context window token efficiency."
+        updated: "2026-05-17"
     },
     pm: {
-        title: "Senior Product Manager",
-        dept: "Product Strategy",
-        level: "Lead (L4)",
-        updated: "2026-05-15",
-        skill1Name: "Product Strategy",
+        vi: {
+            title: "Senior Product Manager",
+            dept: "Chiến lược Sản phẩm",
+            level: "Trưởng nhóm (L4)",
+            skill1Name: "Chiến lược Sản phẩm",
+            skill2Name: "Nghiên cứu & Khám phá UX",
+            prompt: "Đánh giá phương pháp luận quản trị sản phẩm lấy người dùng làm trung tâm, xây dựng bản đồ câu chuyện người dùng (user story mapping), định nghĩa chỉ số đo lường hiệu quả sản phẩm và vòng phản hồi kiểm chứng khách hàng.",
+            defaultPrompt: "Đánh giá phương pháp luận quản trị sản phẩm lấy người dùng làm trung tâm, xây dựng bản đồ câu chuyện người dùng (user story mapping), định nghĩa chỉ số đo lường hiệu quả sản phẩm và vòng phản hồi kiểm chứng khách hàng."
+        },
+        en: {
+            title: "Senior Product Manager",
+            dept: "Product Strategy",
+            level: "Lead (L4)",
+            skill1Name: "Product Strategy",
+            skill2Name: "User Research & Discovery",
+            prompt: "Evaluate user-centered product methodology, agile story mapping precision, product metrics definition, and customer validation loop structures.",
+            defaultPrompt: "Evaluate user-centered product methodology, agile story mapping precision, product metrics definition, and customer validation loop structures."
+        },
         skill1Val: 90,
-        skill2Name: "User Research & Discovery",
         skill2Val: 85,
         benchMCQ: "≥ 80%",
         benchCoding: "—",
         benchCulture: "≥ 95%",
         benchClarity: "≥ 90%",
-        prompt: "Evaluate user-centered product methodology, agile story mapping precision, product metrics definition, and customer validation loop structures.",
-        defaultPrompt: "Evaluate user-centered product methodology, agile story mapping precision, product metrics definition, and customer validation loop structures."
+        updated: "2026-05-15"
     }
 };
 
@@ -818,11 +862,49 @@ let activeCompetencyProfileKey = 'java';
 
 // Load persisted custom prompts from localStorage
 Object.keys(competencyProfiles).forEach(key => {
-    const savedPrompt = localStorage.getItem(`competency_prompt_${key}`);
-    if (savedPrompt) {
-        competencyProfiles[key].prompt = savedPrompt;
-    }
+    ['vi', 'en'].forEach(lang => {
+        const savedPrompt = localStorage.getItem(`competency_prompt_${key}_${lang}`);
+        if (savedPrompt) {
+            competencyProfiles[key][lang].prompt = savedPrompt;
+        }
+    });
 });
+
+window.renderCompetencyCards = function() {
+    const lang = state.currentLang || 'en';
+    Object.keys(competencyProfiles).forEach(key => {
+        const card = document.getElementById(`profileCard-${key}`);
+        if (!card) return;
+        
+        const profile = competencyProfiles[key];
+        const localized = profile[lang] || profile['en'];
+        
+        // Update Title & Dept
+        const titleEl = card.querySelector('h3');
+        if (titleEl) titleEl.textContent = localized.title;
+        
+        const deptEl = card.querySelector('p');
+        if (deptEl) {
+            deptEl.textContent = localized.dept.toUpperCase();
+            if (activeCompetencyProfileKey === key) {
+                deptEl.className = "text-[10px] text-emerald-500/60 uppercase tracking-widest mt-1 font-bold";
+            } else {
+                deptEl.className = "text-[10px] text-[#94a3b8] uppercase tracking-widest mt-1 font-bold";
+            }
+        }
+        
+        // Update Level & Match labels
+        const labelsContainer = card.querySelector('.flex.justify-between');
+        if (labelsContainer) {
+            const levelLabel = lang === 'vi' ? 'Cấp' : 'Level';
+            const matchLabel = lang === 'vi' ? 'Phù hợp' : 'Match';
+            labelsContainer.innerHTML = `
+                <span>${levelLabel}: <strong class="text-white">${localized.level}</strong></span>
+                <span>${matchLabel}: <strong class="text-emerald-400">${profile.skill1Val - 3}%</strong></span>
+            `;
+        }
+    });
+};
 
 window.selectCompetencyProfile = function(key) {
     if (!competencyProfiles[key]) return;
@@ -846,17 +928,20 @@ window.selectCompetencyProfile = function(key) {
     }
     
     // Load data into right details panel
+    const lang = state.currentLang || 'en';
     const profile = competencyProfiles[key];
-    document.getElementById('activeProfileTitle').textContent = profile.title;
-    document.getElementById('activeProfileDept').textContent = profile.dept;
-    document.getElementById('activeProfileLevel').textContent = profile.level;
+    const localized = profile[lang] || profile['en'];
+    
+    document.getElementById('activeProfileTitle').textContent = localized.title;
+    document.getElementById('activeProfileDept').textContent = localized.dept;
+    document.getElementById('activeProfileLevel').textContent = localized.level;
     document.getElementById('activeProfileUpdated').textContent = profile.updated;
     
-    document.getElementById('skill1-name').textContent = profile.skill1Name;
+    document.getElementById('skill1-name').textContent = localized.skill1Name;
     document.getElementById('skill1-val').textContent = `${profile.skill1Val}%`;
     document.getElementById('skill1-bar').style.width = `${profile.skill1Val}%`;
     
-    document.getElementById('skill2-name').textContent = profile.skill2Name;
+    document.getElementById('skill2-name').textContent = localized.skill2Name;
     document.getElementById('skill2-val').textContent = `${profile.skill2Val}%`;
     document.getElementById('skill2-bar').style.width = `${profile.skill2Val}%`;
     
@@ -865,15 +950,16 @@ window.selectCompetencyProfile = function(key) {
     document.getElementById('bench-culture').textContent = profile.benchCulture;
     document.getElementById('bench-clarity').textContent = profile.benchClarity;
     
-    document.getElementById('activePromptConfig').value = profile.prompt;
+    document.getElementById('activePromptConfig').value = localized.prompt;
 };
 
 window.saveCompetencyRules = function() {
     const key = activeCompetencyProfileKey;
     if (!competencyProfiles[key]) return;
     
+    const lang = state.currentLang || 'en';
     const newPrompt = document.getElementById('activePromptConfig').value.trim();
-    competencyProfiles[key].prompt = newPrompt;
+    competencyProfiles[key][lang].prompt = newPrompt;
     
     // Update last updated date
     const today = new Date().toISOString().split('T')[0];
@@ -881,7 +967,7 @@ window.saveCompetencyRules = function() {
     document.getElementById('activeProfileUpdated').textContent = today;
     
     // Persist in localStorage
-    localStorage.setItem(`competency_prompt_${key}`, newPrompt);
+    localStorage.setItem(`competency_prompt_${key}_${lang}`, newPrompt);
     
     window.showToast(state.currentLang === 'en' ? "Competency rules and AI prompt saved!" : "Đã lưu quy tắc năng lực và chỉ thị nhắc AI!");
 };
@@ -890,11 +976,12 @@ window.restoreCompetencyDefaults = function() {
     const key = activeCompetencyProfileKey;
     if (!competencyProfiles[key]) return;
     
+    const lang = state.currentLang || 'en';
     const profile = competencyProfiles[key];
-    profile.prompt = profile.defaultPrompt;
-    document.getElementById('activePromptConfig').value = profile.prompt;
+    profile[lang].prompt = profile[lang].defaultPrompt;
+    document.getElementById('activePromptConfig').value = profile[lang].prompt;
     
-    localStorage.removeItem(`competency_prompt_${key}`);
+    localStorage.removeItem(`competency_prompt_${key}_${lang}`);
     
     window.showToast(state.currentLang === 'en' ? "Restored profile prompt defaults!" : "Đã khôi phục chỉ thị AI mặc định!");
 };

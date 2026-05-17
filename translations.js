@@ -61,7 +61,10 @@ const translations = {
         "aiPromptsPillar": "Trụ cột 3: Chỉ thị nhắc AI (Prompt Directives)",
         "promptSettingsLabel": "Chỉ thị nhắc AI Oracle để đánh giá vị trí này",
         "saveChangesBtn": "Lưu cấu hình",
-        "restoreDefaultsBtn": "Khôi phục mặc định"
+        "restoreDefaultsBtn": "Khôi phục mặc định",
+        "levelLabel": "Cấp",
+        "matchLabel": "Phù hợp",
+        "comingSoon": "Tính năng Tạo Hồ sơ Công việc Mới đang được phát triển trong lộ trình tiếp theo!"
     },
     "en": {
         "appName": "HR-Tech 4.0",
@@ -125,7 +128,10 @@ const translations = {
         "aiPromptsPillar": "Pillar 3: Custom AI Prompt & Target Directives",
         "promptSettingsLabel": "AI Prompt directives for evaluating candidates in this role",
         "saveChangesBtn": "Save Rules",
-        "restoreDefaultsBtn": "Restore Defaults"
+        "restoreDefaultsBtn": "Restore Defaults",
+        "levelLabel": "Level",
+        "matchLabel": "Match",
+        "comingSoon": "Create Job Profile feature is coming soon in the next roadmap phase!"
     }
 };
 
