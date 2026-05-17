@@ -2362,22 +2362,85 @@ window.renderOnboarding = function() {
     const kpiOnb = document.getElementById('kpiOnboardingVal');
     if (kpiOnb) kpiOnb.textContent = `${progressPercent}%`;
     
-    const renderOnboardingCard = (member) => `
-        <div class="p-4 bg-[#141a17]/80 border border-[#242c27] rounded-xl hover:border-emerald-500/30 transition-all flex flex-col space-y-3 relative group">
-            <div class="flex items-center gap-3">
-                <img src="${member.avatar}" class="w-9 h-9 rounded-full border border-emerald-500/20 object-cover">
-                <div>
-                    <h4 class="text-xs font-black text-white group-hover:text-emerald-400 transition-colors">${member.name}</h4>
-                    <p class="text-[9px] text-[#94a3b8] font-bold">${member.role}</p>
+    if (!state.expandedOnboardingCards) {
+        state.expandedOnboardingCards = [];
+    }
+    
+    const renderOnboardingCard = (member) => {
+        const isExpanded = state.expandedOnboardingCards.includes(member.id);
+        const progress = member.stage === 'docs' ? 25 : member.stage === 'contract' ? 50 : member.stage === 'ssc' ? 75 : 100;
+        
+        let checklistHtml = '';
+        if (member.stage === 'docs') {
+            checklistHtml = `
+                <div class="space-y-1.5 pt-2 border-t border-[#242c27] text-[9px] text-[#bbcabf] font-bold">
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> CCCD / Hộ chiếu (Đã nộp)</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Bằng cấp & Chứng chỉ</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Sơ yếu lý lịch công chứng</div>
+                </div>
+            `;
+        } else if (member.stage === 'contract') {
+            checklistHtml = `
+                <div class="space-y-1.5 pt-2 border-t border-[#242c27] text-[9px] text-[#bbcabf] font-bold">
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Soạn thảo hợp đồng (Đã duyệt)</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Thỏa thuận bảo mật NDA</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-[#4e6b5a]">radio_button_unchecked</span> Đang chờ ký số chữ ký điện tử</div>
+                </div>
+            `;
+        } else if (member.stage === 'ssc') {
+            checklistHtml = `
+                <div class="space-y-1.5 pt-2 border-t border-[#242c27] text-[9px] text-[#bbcabf] font-bold">
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Đăng ký tài khoản hệ thống tập đoàn</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Mã số thuế TNCN</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-[#4e6b5a]">radio_button_unchecked</span> Đang chờ kích hoạt thẻ bảo hiểm</div>
+                </div>
+            `;
+        } else {
+            checklistHtml = `
+                <div class="space-y-1.5 pt-2 border-t border-[#242c27] text-[9px] text-[#bbcabf] font-bold">
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Khởi tạo Email & Slack công ty</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Bàn giao thiết bị Macbook Pro M3</div>
+                    <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[11px] text-emerald-400">check_circle</span> Hoàn tất 100% nhập việc!</div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div onclick="window.toggleOnboardingCard('${member.id}')" class="p-4 bg-[#141a17]/80 border ${isExpanded ? 'border-emerald-500/50 bg-[#141a17]/90' : 'border-[#242c27]'} rounded-xl hover:border-emerald-500/30 transition-all flex flex-col space-y-3 relative group cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <img src="${member.avatar}" class="w-9 h-9 rounded-full border border-emerald-500/20 object-cover">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-xs font-black text-white group-hover:text-emerald-400 transition-colors truncate">${member.name}</h4>
+                        <p class="text-[9px] text-[#94a3b8] font-bold truncate">${member.role}</p>
+                    </div>
+                </div>
+                
+                <!-- Progress Indicator -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[8px] font-black uppercase text-emerald-500/60">
+                        <span data-i18n="onboardingProgressLabel">Tiến trình</span>
+                        <span>${progress}%</span>
+                    </div>
+                    <div class="w-full bg-[#1c2420] h-1.5 rounded-full overflow-hidden border border-[#242c27]">
+                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                
+                ${isExpanded ? checklistHtml : ''}
+                
+                <p class="text-[8px] text-[#4e6b5a] font-mono">${member.email}</p>
+                <div class="flex justify-between items-center pt-1.5 border-t border-[#242c27]/40">
+                    <span class="text-[8px] font-bold text-emerald-500/40 uppercase group-hover:text-emerald-500/80 transition-colors">
+                        ${isExpanded ? (state.currentLang === 'vi' ? 'Thu gọn' : 'Hide') : (state.currentLang === 'vi' ? 'Xem Chi tiết' : 'View Details')}
+                    </span>
+                    <div class="flex gap-1.5">
+                        ${member.stage !== 'docs' ? `<button onclick="event.stopPropagation(); moveOnboarding('${member.id}', 'prev')" class="p-1.5 bg-[#242c27] hover:bg-emerald-500/20 text-[#bbcabf] hover:text-emerald-400 rounded-lg transition-all flex items-center justify-center border border-[#343e38]"><span class="material-symbols-outlined text-[10px]">arrow_back</span></button>` : ''}
+                        ${member.stage !== 'it' ? `<button onclick="event.stopPropagation(); moveOnboarding('${member.id}', 'next')" class="p-1.5 bg-[#242c27] hover:bg-emerald-500/20 text-[#bbcabf] hover:text-emerald-400 rounded-lg transition-all flex items-center justify-center border border-[#343e38]"><span class="material-symbols-outlined text-[10px]">arrow_forward</span></button>` : ''}
+                    </div>
                 </div>
             </div>
-            <p class="text-[8px] text-[#4e6b5a] font-mono">${member.email}</p>
-            <div class="flex justify-end gap-1.5 pt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                ${member.stage !== 'docs' ? `<button onclick="moveOnboarding('${member.id}', 'prev')" class="p-1 bg-[#242c27] hover:bg-emerald-500/10 text-[#bbcabf] hover:text-emerald-400 rounded transition-all"><span class="material-symbols-outlined text-xs">arrow_back</span></button>` : ''}
-                ${member.stage !== 'it' ? `<button onclick="moveOnboarding('${member.id}', 'next')" class="p-1 bg-[#242c27] hover:bg-emerald-500/10 text-[#bbcabf] hover:text-emerald-400 rounded transition-all"><span class="material-symbols-outlined text-xs">arrow_forward</span></button>` : ''}
-            </div>
-        </div>
-    `;
+        `;
+    };
     
     const docs = document.getElementById('listOnboardingDocs');
     const contract = document.getElementById('listOnboardingContract');
@@ -2400,6 +2463,19 @@ window.moveOnboarding = function(id, direction) {
     member.stage = stages[idx];
     window.renderOnboarding();
     window.showToast(state.currentLang === 'en' ? "Onboarding stage updated!" : "Đã cập nhật tiến độ nhập việc!");
+};
+
+window.toggleOnboardingCard = function(id) {
+    if (!state.expandedOnboardingCards) {
+        state.expandedOnboardingCards = [];
+    }
+    const idx = state.expandedOnboardingCards.indexOf(id);
+    if (idx > -1) {
+        state.expandedOnboardingCards.splice(idx, 1);
+    } else {
+        state.expandedOnboardingCards.push(id);
+    }
+    window.renderOnboarding();
 };
 
 window.generateAIJD = async function() {
